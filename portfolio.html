@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HomeLab Portfolio</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&family=Fraunces:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f5f4f0;
+      --surface: #ffffff;
+      --surface2: #eeecea;
+      --border: #e0ddd8;
+      --text: #1a1917;
+      --text-muted: #7a7874;
+      --accent: #1c4ed8;
+      --accent-light: #e8eefb;
+      --accent2: #0e7490;
+      --tag-it: #d1fae5;
+      --tag-it-text: #065f46;
+      --tag-net: #dbeafe;
+      --tag-net-text: #1e40af;
+      --tag-sec: #fce7f3;
+      --tag-sec-text: #9d174d;
+      --tag-cloud: #ede9fe;
+      --tag-cloud-text: #5b21b6;
+      --radius: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.07), 0 4px 16px rgba(0,0,0,0.05);
+      --shadow-hover: 0 4px 12px rgba(0,0,0,0.1), 0 12px 32px rgba(0,0,0,0.08);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(245,244,240,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 64px;
+    }
+    .nav-logo {
+      font-family: 'Fraunces', serif;
+      font-size: 1.25rem; font-weight: 600;
+      color: var(--text);
+      text-decoration: none;
+      letter-spacing: -0.01em;
+    }
+    .nav-logo span { color: var(--accent); }
+    .nav-links { display: flex; gap: 2rem; list-style: none; }
+    .nav-links a {
+      font-size: 0.875rem; font-weight: 500;
+      color: var(--text-muted); text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-cta {
+      background: var(--accent); color: #fff;
+      padding: 0.45rem 1.1rem; border-radius: 8px;
+      font-size: 0.875rem; font-weight: 500;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .nav-cta:hover { background: #1740b8; transform: translateY(-1px); }
+
+    /* ── HERO ── */
+    .hero {
+      max-width: 1100px; margin: 0 auto;
+      padding: 5rem 2rem 3rem;
+      display: grid; grid-template-columns: 1fr auto; gap: 3rem; align-items: center;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: var(--accent-light); color: var(--accent);
+      font-size: 0.78rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 0.35rem 0.85rem; border-radius: 100px;
+      margin-bottom: 1.2rem;
+    }
+    .hero-badge::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+    .hero h1 {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(2.4rem, 5vw, 3.6rem);
+      font-weight: 300; line-height: 1.1; letter-spacing: -0.03em;
+      margin-bottom: 1rem;
+    }
+    .hero h1 em { font-style: italic; color: var(--accent); }
+    .hero-sub {
+      font-size: 1.05rem; color: var(--text-muted);
+      max-width: 520px; line-height: 1.7;
+      margin-bottom: 2rem;
+    }
+    .hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .btn-primary {
+      background: var(--accent); color: #fff;
+      padding: 0.7rem 1.5rem; border-radius: 10px;
+      font-size: 0.9rem; font-weight: 600; text-decoration: none;
+      transition: background 0.2s, transform 0.15s;
+      display: inline-flex; align-items: center; gap: 0.5rem;
+    }
+    .btn-primary:hover { background: #1740b8; transform: translateY(-2px); }
+    .btn-ghost {
+      background: transparent; color: var(--text);
+      border: 1.5px solid var(--border);
+      padding: 0.7rem 1.5rem; border-radius: 10px;
+      font-size: 0.9rem; font-weight: 500; text-decoration: none;
+      transition: border-color 0.2s, transform 0.15s;
+      display: inline-flex; align-items: center; gap: 0.5rem;
+    }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-2px); }
+    .hero-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 1.75rem;
+      box-shadow: var(--shadow);
+      min-width: 240px;
+    }
+    .hero-stat { margin-bottom: 1.2rem; }
+    .hero-stat:last-child { margin-bottom: 0; }
+    .hero-stat-num {
+      font-family: 'Fraunces', serif;
+      font-size: 2rem; font-weight: 600; color: var(--text);
+      line-height: 1;
+    }
+    .hero-stat-label { font-size: 0.82rem; color: var(--text-muted); margin-top: 0.2rem; }
+    .hero-divider { border: none; border-top: 1px solid var(--border); margin: 1rem 0; }
+
+    /* ── SECTION WRAPPER ── */
+    .section { max-width: 1100px; margin: 0 auto; padding: 4rem 2rem; }
+    .section-header { margin-bottom: 2.5rem; }
+    .section-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem; font-weight: 500; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--accent);
+      margin-bottom: 0.6rem;
+    }
+    .section-title {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      font-weight: 300; letter-spacing: -0.02em;
+    }
+    .section-sub { color: var(--text-muted); font-size: 0.95rem; margin-top: 0.5rem; }
+
+    /* ── ABOUT ── */
+    .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+    .about-bio {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 2rem;
+      box-shadow: var(--shadow);
+    }
+    .about-bio p { color: var(--text-muted); line-height: 1.8; margin-bottom: 1rem; font-size: 0.95rem; }
+    .about-bio p:last-child { margin-bottom: 0; }
+    .about-details { display: flex; flex-direction: column; gap: 1rem; }
+    .detail-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.25rem 1.5rem;
+      box-shadow: var(--shadow);
+      display: flex; align-items: center; gap: 1rem;
+    }
+    .detail-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: var(--accent-light); color: var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; flex-shrink: 0;
+    }
+    .detail-title { font-weight: 600; font-size: 0.9rem; }
+    .detail-sub { font-size: 0.82rem; color: var(--text-muted); }
+
+    /* ── FILTER TABS ── */
+    .filter-bar { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 2rem; }
+    .filter-btn {
+      padding: 0.45rem 1rem; border-radius: 8px;
+      border: 1.5px solid var(--border); background: transparent;
+      font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 500;
+      color: var(--text-muted); cursor: pointer;
+      transition: all 0.2s;
+    }
+    .filter-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .filter-btn.active {
+      background: var(--accent); border-color: var(--accent);
+      color: #fff;
+    }
+
+    /* ── PROJECT CARDS ── */
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.5rem;
+    }
+    .project-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+      box-shadow: var(--shadow);
+      transition: box-shadow 0.25s, transform 0.2s;
+      cursor: default;
+      display: flex; flex-direction: column;
+    }
+    .project-card:hover { box-shadow: var(--shadow-hover); transform: translateY(-3px); }
+    .project-card.hidden { display: none; }
+    .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
+    .card-icon {
+      width: 46px; height: 46px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem;
+    }
+    .icon-it { background: var(--tag-it); }
+    .icon-net { background: var(--tag-net); }
+    .icon-sec { background: var(--tag-sec); }
+    .icon-cloud { background: var(--tag-cloud); }
+    .card-status {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem; font-weight: 500;
+      padding: 0.25rem 0.65rem; border-radius: 100px;
+    }
+    .status-done { background: #d1fae5; color: #065f46; }
+    .status-wip  { background: #fef3c7; color: #92400e; }
+    .card-title { font-size: 1.05rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .card-desc { font-size: 0.875rem; color: var(--text-muted); line-height: 1.65; flex: 1; margin-bottom: 1.25rem; }
+    .card-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1.25rem; }
+    .tag {
+      font-size: 0.72rem; font-weight: 500; padding: 0.25rem 0.6rem; border-radius: 6px;
+    }
+    .tag-it    { background: var(--tag-it);    color: var(--tag-it-text); }
+    .tag-net   { background: var(--tag-net);   color: var(--tag-net-text); }
+    .tag-sec   { background: var(--tag-sec);   color: var(--tag-sec-text); }
+    .tag-cloud { background: var(--tag-cloud); color: var(--tag-cloud-text); }
+    .tag-tool  { background: var(--surface2);  color: var(--text-muted); border: 1px solid var(--border); }
+    .card-footer { border-top: 1px solid var(--border); padding-top: 1rem; margin-top: auto; }
+    .card-link {
+      font-size: 0.82rem; font-weight: 600; color: var(--accent);
+      text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;
+      transition: gap 0.2s;
+    }
+    .card-link:hover { gap: 0.55rem; }
+
+    /* ── SKILLS ── */
+    .skills-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.5rem; }
+    .skill-group {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.5rem;
+      box-shadow: var(--shadow);
+    }
+    .skill-group-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem; }
+    .skill-group-icon {
+      width: 36px; height: 36px; border-radius: 9px;
+      display: flex; align-items: center; justify-content: center; font-size: 1rem;
+    }
+    .skill-group-title { font-weight: 600; font-size: 0.95rem; }
+    .skill-item { margin-bottom: 0.85rem; }
+    .skill-item:last-child { margin-bottom: 0; }
+    .skill-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem; }
+    .skill-name { font-size: 0.82rem; font-weight: 500; }
+    .skill-pct { font-family: 'DM Mono', monospace; font-size: 0.75rem; color: var(--text-muted); }
+    .skill-bar { height: 5px; background: var(--surface2); border-radius: 100px; overflow: hidden; }
+    .skill-fill {
+      height: 100%; border-radius: 100px; background: var(--accent);
+      animation: fillBar 1.2s ease forwards;
+      width: 0;
+    }
+    @keyframes fillBar { to { width: var(--pct); } }
+
+    /* ── CERTS ── */
+    .certs-row { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 2rem; }
+    .cert-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1rem 1.4rem;
+      box-shadow: var(--shadow);
+      display: flex; align-items: center; gap: 0.85rem;
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .cert-card:hover { box-shadow: var(--shadow-hover); transform: translateY(-2px); }
+    .cert-badge {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: var(--accent-light); color: var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; flex-shrink: 0;
+    }
+    .cert-name { font-weight: 600; font-size: 0.88rem; }
+    .cert-org  { font-size: 0.78rem; color: var(--text-muted); }
+    .cert-status-earned { color: #065f46; font-size: 0.72rem; font-weight: 600; }
+    .cert-status-progress { color: #92400e; font-size: 0.72rem; font-weight: 600; }
+
+    /* ── CONTACT ── */
+    .contact-section { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 3rem; box-shadow: var(--shadow); }
+    .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center; }
+    .contact-text h2 {
+      font-family: 'Fraunces', serif;
+      font-size: 1.9rem; font-weight: 300; margin-bottom: 1rem;
+    }
+    .contact-text p { color: var(--text-muted); font-size: 0.95rem; line-height: 1.7; }
+    .contact-links { display: flex; flex-direction: column; gap: 1rem; }
+    .contact-link {
+      display: flex; align-items: center; gap: 1rem;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1rem 1.25rem;
+      text-decoration: none; color: var(--text);
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .contact-link:hover { border-color: var(--accent); transform: translateX(4px); }
+    .contact-link-icon {
+      width: 38px; height: 38px; border-radius: 9px;
+      background: var(--accent-light); color: var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; flex-shrink: 0;
+    }
+    .contact-link-name { font-weight: 600; font-size: 0.9rem; }
+    .contact-link-handle { font-size: 0.8rem; color: var(--text-muted); }
+    .contact-link-arrow { margin-left: auto; color: var(--text-muted); font-size: 1rem; }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      text-align: center; padding: 2rem;
+      font-size: 0.82rem; color: var(--text-muted);
+    }
+    footer span { color: var(--accent); }
+
+    /* ── FADE IN ── */
+    .fade-in {
+      opacity: 0; transform: translateY(18px);
+      animation: fadeUp 0.6s ease forwards;
+    }
+    @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .hero { grid-template-columns: 1fr; }
+      .hero-card { display: none; }
+      .about-grid, .contact-grid { grid-template-columns: 1fr; }
+      nav .nav-links { display: none; }
+      .contact-section { padding: 2rem 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#"><span>//</span> HomeLab</a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#skills">Skills</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <a class="nav-cta" href="#contact">Get in Touch</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div>
+    <div class="hero-badge fade-in">Available for Opportunities</div>
+    <h1 class="fade-in delay-1">Building labs,<br /><em>solving real problems.</em></h1>
+    <p class="hero-sub fade-in delay-2">
+      IT professional with hands-on homelab experience across support, networking, cybersecurity, and cloud infrastructure. I learn by doing — and I document everything.
+    </p>
+    <div class="hero-actions fade-in delay-3">
+      <a class="btn-primary" href="#projects">View Projects →</a>
+      <a class="btn-ghost" href="#skills">Skills & Certs</a>
+    </div>
+  </div>
+  <div class="hero-card fade-in delay-4">
+    <div class="hero-stat">
+      <div class="hero-stat-num">12+</div>
+      <div class="hero-stat-label">Lab Projects Completed</div>
+    </div>
+    <hr class="hero-divider" />
+    <div class="hero-stat">
+      <div class="hero-stat-num">4</div>
+      <div class="hero-stat-label">Domains of Practice</div>
+    </div>
+    <hr class="hero-divider" />
+    <div class="hero-stat">
+      <div class="hero-stat-num">3</div>
+      <div class="hero-stat-label">Certifications Earned</div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="section" id="about">
+  <div class="section-header">
+    <div class="section-label">01 — About Me</div>
+    <h2 class="section-title">Who I Am</h2>
+  </div>
+  <div class="about-grid">
+    <div class="about-bio fade-in">
+      <p>
+        I'm an IT enthusiast and aspiring cybersecurity professional who believes the best way to learn is through hands-on experimentation. My homelab is my playground — a space where I break things, fix them, and understand why.
+      </p>
+      <p>
+        From setting up Active Directory environments and configuring VLANs to deploying SIEMs and spinning up cloud infrastructure, every project here reflects a real skill I've built, not just a tutorial I followed.
+      </p>
+      <p>
+        I'm passionate about bridging IT operations with security — understanding the full stack from helpdesk to threat detection. Currently seeking opportunities in IT support, networking, or security operations.
+      </p>
+    </div>
+    <div class="about-details">
+      <div class="detail-card fade-in delay-1">
+        <div class="detail-icon">🖥️</div>
+        <div>
+          <div class="detail-title">Home Lab Setup</div>
+          <div class="detail-sub">Proxmox VE · pfSense · 3x VMs active</div>
+        </div>
+      </div>
+      <div class="detail-card fade-in delay-2">
+        <div class="detail-icon">📍</div>
+        <div>
+          <div class="detail-title">Location</div>
+          <div class="detail-sub">New York, NY · Fairfax, VA · Open to Remote · Hybrid · Onsite</div>
+        </div>
+      </div>
+      <div class="detail-card fade-in delay-3">
+        <div class="detail-icon">🎯</div>
+        <div>
+          <div class="detail-title">Target Roles</div>
+          <div class="detail-sub">IT Support · Network Admin · SOC Analyst</div>
+        </div>
+      </div>
+      <div class="detail-card fade-in delay-4">
+        <div class="detail-icon">📚</div>
+        <div>
+          <div class="detail-title">Currently Studying</div>
+          <div class="detail-sub">CompTIA Security+ · Comptia Network+ </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROJECTS -->
+<section class="section" id="projects">
+  <div class="section-header">
+    <div class="section-label">02 — Projects</div>
+    <h2 class="section-title">Lab Work</h2>
+    <p class="section-sub">Click a category to filter. All projects are self-hosted in my personal homelab.</p>
+  </div>
+
+  <div class="filter-bar">
+    <button class="filter-btn active" onclick="filterCards('all', this)">All</button>
+    <button class="filter-btn" onclick="filterCards('it', this)">IT Support</button>
+    <button class="filter-btn" onclick="filterCards('net', this)">Networking</button>
+    <button class="filter-btn" onclick="filterCards('sec', this)">Cybersecurity</button>
+    <button class="filter-btn" onclick="filterCards('cloud', this)">Cloud / Virtualization</button>
+  </div>
+
+  <div class="projects-grid">
+
+    <!-- IT SUPPORT -->
+    <div class="project-card" data-cat="it">
+      <div class="card-top">
+        <div class="card-icon icon-it">🖥️</div>
+        <span class="card-status status-done">Completed</span>
+      </div>
+      <div class="card-title">Active Directory Home Lab</div>
+      <div class="card-desc">Deployed a Windows Server 2022 VM with Active Directory Domain Services. Created OUs, group policies, user accounts, and simulated a corporate IT environment from scratch.</div>
+      <div class="card-tags">
+        <span class="tag tag-it">IT Support</span>
+        <span class="tag tag-tool">Windows Server</span>
+        <span class="tag tag-tool">AD DS</span>
+        <span class="tag tag-tool">GPO</span>
+      </div>
+      <div class="card-footer">
+        <a class="card-link" href="#">View Write-up →</a>
+      </div>
+    </div>
+
+    <div class="project-card" data-cat="it">
+      <div class="card-top">
+        <div class="card-icon icon-it">🎫</div>
+        <span class="card-status status-done">Completed</span>
+      </div>
+      <div class="card-title">Ticketing System Setup (osTicket)</div>
+      <div class="card-desc">Self-hosted osTicket on a Linux VM. Configured departments, SLAs, ticket escalation rules, and email piping to simulate a real helpdesk workflow.</div>
+      <div class="card-tags">
+        <span class="tag tag-it">IT Support</span>
+        <span class="tag tag-tool">osTicket</span>
+        <span class="tag tag-tool">LAMP Stack</span>
+        <span class="tag tag-tool">Ubuntu</span>
+      </div>
+      <div class="card-footer">
+        <a class="card-link" href="#">View Write-up →</a>
+      </div>
+    </div>
+
+    <!-- NETWORKING -->
+    <div class="project-card" data-cat="net">
+      <div class="card-top">
+        <div class="card-icon icon-net">🌐</div>
+        <span class="card-status status-done">Completed</span>
+      </div>
+      <div class="card-title">pfSense Firewall & VLAN Segmentation</div>
+      <div class="card-desc">Configured pfSense as the main firewall with VLAN segmentation for IoT, management, and trusted devices. Applied inter-VLAN firewall rules and set up a guest network.</div>
+      <div class="card-tags">
+        <span class="tag tag-net">Networking</span>
+        <span class="tag tag-tool">pfSense</span>
+        <span class="tag tag-tool">VLANs</span>
+        <span class="tag tag-tool">802.1Q</span>
+      </div>
+      <div class="card-footer">
+        <a class="card-link" href="#">View Write-up →</a>
+      </div>
+    </div>
+
+    <div class="project-card" data-cat="net">
+      <div class="card-top">
+        <div class="card-icon icon-net">📡</div>
+        <span class="card-status status-wip">In Progress</span>
+      </div>
+      <div class="card-title">WireGuard VPN Server</div>
+      <div class="card-desc">Set up a self-hosted WireGuard VPN to securely tunnel into the home network from anywhere. Configured split tunneling and DNS over VPN for privacy.</div>
+      <div class="card-tags">
+        <span class="tag tag-net">Networking</span>
+        <span class="tag tag-tool">WireGuard</span>
+        <span class="tag tag-tool">Ubuntu</span>
+        <span class="tag tag-tool">DNS</span>
+      </div>
+      <div class="card-footer">
+        <a class="card-link" href="#">View Write-up →</a>
+      </div>
+    </div>
+
+    <!-- CYBERSECURITY -->
+    <div class="project-card" data-cat="sec">
+      <div class="card-top">
+        <div class="card-icon icon-sec">🔍</div>
+        <span class="card-status status-done">Completed</span>
+      </div>
+      <div class="card-title">SIEM with Splunk Free</div>
+      <div class="card-desc">Deployed Splunk on a local VM and ingested Windows event logs via Universal Forwarder. Built dashboards to detect failed logins, suspicious processes, and lateral movement patterns.</div>
+      <div class="card-tags">
+        <span class="tag tag-sec">Cybersecurity</span>
+        <span class="tag tag-tool">Splunk</span>
+        <span class="tag tag-tool">Windows Logs</span>
+        <span class="tag tag-tool">SIEM</span>
+      </div>
+      <div class="card-footer">
+        <a class="card-link" href="#">View Write-up →</a>
+      </div>
+    </div>
+
+    <div class="project-card" data-cat="sec">
+      <div class="card-top">
+        <div class="card-icon icon-sec">⚔️</div>
+        <span class="card-status status-done">Completed</span>
+      </div>
+      <div class="card-title">Vulnerability Scanning with Nessus</div>
+      <div class="card-desc">Ran Nessus Essentials against intentionally vulnerable VMs. Analyzed CVEs, prioritized remediations, and documented findings in a professional vulnerability report.</div>
+      <div class="card-tags">
+        <span class="tag tag-sec">Cybersecurity</span>
+        <span class="tag tag-tool">Nessus</span>
+        <span class="tag tag-tool">CVE</span>
+        <span class="tag tag-tool">Metasploitable</span>
+      </div>
+      <div class="card-footer">
+        <a class="card-link" href="#">View Write-up →</a>
+      </div>
+    </div>
+
+    <div class="project-card" data-cat="sec">
+      <div class="card-top">
+        <div class="card-icon icon-sec">🕵️</div>
+        <span class="card-status status-wip">In Progress</span>
+      </div>
+      <div class="card-title">Malware Analysis Sandbox</div>
+      <div class="card-desc">Built an isolated lab using FlareVM and REMnux for malware analysis. Practicing static and dynamic analysis on EICAR test files and open-source malware samples.</div>
+      <div class="card-tags">
+        <span class="tag tag-sec">Cybersecurity</span>
+        <span class="tag tag-tool">FlareVM</span>
+        <span class="tag tag-tool">REMnux</span>
+        <span class="tag tag-tool">Wireshark</span>
+      </div>
+      <div class="card-footer">
+        <a class="card-link" href="#">View Write-up →</a>
+      </div>
+    </div>
+
+    <!-- CLOUD -->
+    <div class="project-card" data-cat="cloud">
+      <div class="card-top">
+        <div class="card-icon icon-cloud">☁️</div>
+        <span class="card-status status-done">Completed</span>
+      </div>
+      <div class="card-title">Proxmox Virtualization Cluster</div>
+      <div class="card-desc">Set up Proxmox VE on a refurbished server. Configured storage pools, templated VMs for rapid deployment, and managed resources across multiple virtualized workloads.</div>
+      <div class="card-tags">
+        <span class="tag tag-cloud">Virtualization</span>
+        <span class="tag tag-tool">Proxmox</span>
+        <span class="tag tag-tool">ZFS</span>
+        <span class="tag tag-tool">KVM</span>
+      </div>
+      <div class="card-footer">
+        <a class="card-link" href="#">View Write-up →</a>
+      </div>
+    </div>
+
+    <div class="project-card" data-cat="cloud">
+      <div class="card-top">
+        <div class="card-icon icon-cloud">🐳</div>
+        <span class="card-status status-done">Completed</span>
+      </div>
+      <div class="card-title">Docker Self-Hosted Services</div>
+      <div class="card-desc">Deployed self-hosted tools using Docker Compose including Portainer, Uptime Kuma, and Nextcloud. Managed persistent volumes, networks, and reverse proxied via Nginx.</div>
+      <div class="card-tags">
+        <span class="tag tag-cloud">Cloud / Infra</span>
+        <span class="tag tag-tool">Docker</span>
+        <span class="tag tag-tool">Nginx</span>
+        <span class="tag tag-tool">Portainer</span>
+      </div>
+      <div class="card-footer">
+        <a class="card-link" href="#">View Write-up →</a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- SKILLS & CERTS -->
+<section class="section" id="skills">
+  <div class="section-header">
+    <div class="section-label">03 — Skills & Certs</div>
+    <h2 class="section-title">Technical Proficiency</h2>
+    <p class="section-sub">Self-assessed from hands-on lab experience and study.</p>
+  </div>
+
+  <div class="skills-grid">
+    <div class="skill-group fade-in">
+      <div class="skill-group-header">
+        <div class="skill-group-icon icon-it">🖥️</div>
+        <div class="skill-group-title">IT Support</div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-row"><span class="skill-name">Active Directory</span><span class="skill-pct">85%</span></div>
+        <div class="skill-bar"><div class="skill-fill" style="--pct:85%"></div></div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-row"><span class="skill-name">Windows Server</span><span class="skill-pct">80%</span></div>
+        <div class="skill-bar"><div class="skill-fill" style="--pct:80%"></div></div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-row"><span class="skill-name">Linux (Ubuntu/Debian)</span><span class="skill-pct">75%</span></div>
+        <div class="skill-bar"><div class="skill-fill" style="--pct:75%"></div></div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-row"><span class="skill-name">Ticketing & ITSM</span><span class="skill-pct">70%</span></div>
+        <div class="skill-bar"><div class="skill-fill" style="--pct:70%"></div></div>
+      </div>
+    </div>
+
+    <div class="skill-group fade-in delay-1">
+      <div class="skill-group-header">
+        <div class="skill-group-icon icon-net">🌐</div>
+        <div class="skill-group-title">Networking</div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-row"><span class="skill-name">TCP/IP & Subnetting</span><span class="skill-pct">85%</span></div>
+        <div class="skill-bar"><div class="skill-fill" style="--pct:85%"></div></div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-row"><span class="skill-name">pfSense / Firewalls</span><span class="skill-pct">80%</span></div>
+        <div class="skill-bar"><div class="skill-fill" style="--pct:80%"></div></div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-row"><span class="skill-name">VLANs & Switching</span><span class="skill-pct">75%</span></div>
+        <div class="skill-bar"><div class="skill-fill" style="--pct:75%"></div></div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-row"><span class="skill-name">DNS / DHCP / VPN</span><span class="skill-pct">72%</span></div>
+        <div class="skill-bar"><div class="skill-fill" style="--pct:72%"></div></div>
+      </div>
+    </div>
+
+    <div class="skill-group fade-in delay-2">
+      <div class="skill-group-header">
+        <div class="skill-group-icon icon-sec">🔒</div>
+        <div class="skill-group-title">Cybersecurity</div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-row"><span class="skill-name">SIEM (Splunk)</span><span class="skill-pct">70%</span></div>
+        <div class="skill-bar"><div class="skill-fill" style="--pct:70%"></div></div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-row"><span class="skill-name">Vulnerability Scanning</span><span class="skill-pct">65%</span></div>
+        <div class="skill-bar"><div class="skill-fill" style="--pct:65%"></div></div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-row"><span class="skill-name">Wireshark / Packet Analysis</span><span class="skill-pct">70%</span></div>
+        <div class="skill-bar"><div class="skill-fill" style="--pct:70%"></div></div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-row"><span class="skill-name">Incident Response</span><span class="skill-pct">55%</span></div>
+        <div class="skill-bar"><div class="skill-fill" style="--pct:55%"></div></div>
+      </div>
+    </div>
+
+    <div class="skill-group fade-in delay-3">
+      <div class="skill-group-header">
+        <div class="skill-group-icon icon-cloud">☁️</div>
+        <div class="skill-group-title">Cloud & Virtualization</div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-row"><span class="skill-name">Proxmox / KVM</span><span class="skill-pct">80%</span></div>
+        <div class="skill-bar"><div class="skill-fill" style="--pct:80%"></div></div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-row"><span class="skill-name">Docker / Containers</span><span class="skill-pct">72%</span></div>
+        <div class="skill-bar"><div class="skill-fill" style="--pct:72%"></div></div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-row"><span class="skill-name">AWS Fundamentals</span><span class="skill-pct">55%</span></div>
+        <div class="skill-bar"><div class="skill-fill" style="--pct:55%"></div></div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-row"><span class="skill-name">Bash Scripting</span><span class="skill-pct">65%</span></div>
+        <div class="skill-bar"><div class="skill-fill" style="--pct:65%"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CERTS -->
+  <div style="margin-top:3rem">
+    <div class="section-label">Certifications</div>
+    <div class="certs-row">
+      <div class="cert-card">
+        <div class="cert-badge">🏆</div>
+        <div>
+          <div class="cert-name">CompTIA A+</div>
+          <div class="cert-org">CompTIA</div>
+          <div class="cert-status-earned">✓ Earned</div>
+        </div>
+      </div>
+      <div class="cert-card">
+        <div class="cert-badge">🏆</div>
+        <div>
+          <div class="cert-name">CompTIA Network+</div>
+          <div class="cert-org">CompTIA</div>
+          <div class="cert-status-progress">⏳ In Progress</div>
+        </div>
+      </div>
+      <div class="cert-card">
+        <div class="cert-badge">⏳</div>
+        <div>
+          <div class="cert-name">CompTIA Security+</div>
+          <div class="cert-org">CompTIA</div>
+          <div class="cert-status-progress">⏳ In Progress</div>
+        </div>
+      </div>
+      <div class="cert-card">
+        <div class="cert-badge">🏆</div>
+        <div>
+          <div class="cert-name">Google IT Support</div>
+          <div class="cert-org">Google / Coursera</div>
+          <div class="cert-status-earned">✓ Earned</div>
+        </div>
+      </div>
+	  <div class="cert-card">
+        <div class="cert-badge">🏆</div>
+        <div>
+          <div class="cert-name">Google Cybersecuirty</div>
+          <div class="cert-org">Google / Coursera</div>
+          <div class="cert-status-earned">✓ Earned</div>
+        </div>
+      </div>
+	  <div class="cert-card">
+        <div class="cert-badge">🏆</div>
+        <div>
+          <div class="cert-name">Crash Course on Python</div>
+          <div class="cert-org">Google / Coursera</div>
+          <div class="cert-status-earned">✓ Earned</div>
+        </div>
+      </div>
+      <div class="cert-card">
+        <div class="cert-badge">⏳</div>
+        <div>
+          <div class="cert-name">AWS Cloud Practitioner</div>
+          <div class="cert-org">Amazon Web Services</div>
+          <div class="cert-status-progress">⏳ Planned</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="section" id="contact">
+  <div class="contact-section">
+    <div class="contact-grid">
+      <div class="contact-text">
+        <div class="section-label">04 — Contact</div>
+        <h2>Let's Connect</h2>
+        <p>
+          Whether you're a recruiter, fellow homelab enthusiast, or just want to talk IT and security — I'm always open to a conversation. Find me on the platforms below.
+        </p>
+      </div>
+      <div class="contact-links">
+        <a class="contact-link" href="https://github.com" target="_blank">
+          <div class="contact-link-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+          </div>
+          <div>
+            <div class="contact-link-name">GitHub</div>
+            <div class="contact-link-handle">github.com/blaborte</div>
+          </div>
+          <div class="contact-link-arrow">→</div>
+        </a>
+        <a class="contact-link" href="https://linkedin.com" target="_blank">
+          <div class="contact-link-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+          </div>
+          <div>
+            <div class="contact-link-name">LinkedIn</div>
+            <div class="contact-link-handle">https://www.linkedin.com/in/baltazarlaborte/</div>
+          </div>
+          <div class="contact-link-arrow">→</div>
+        </a>
+        <a class="contact-link" href="mailto:baltazarlaborte@gmail.com">
+          <div class="contact-link-icon">✉️</div>
+          <div>
+            <div class="contact-link-name">Email</div>
+            <div class="contact-link-handle">baltazarlaborte@gmail.com</div>
+          </div>
+          <div class="contact-link-arrow">→</div>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>Built with care · <span>Baltazar Laborte</span> · HomeLab Portfolio 2026</p>
+</footer>
+
+<script>
+  function filterCards(cat, btn) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.project-card').forEach(card => {
+      if (cat === 'all' || card.dataset.cat === cat) {
+        card.classList.remove('hidden');
+      } else {
+        card.classList.add('hidden');
+      }
+    });
+  }
+
+  // Trigger skill bar animations on scroll
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.querySelectorAll('.skill-fill').forEach(bar => {
+          bar.style.animationPlayState = 'running';
+        });
+      }
+    });
+  }, { threshold: 0.3 });
+  document.querySelectorAll('.skill-group').forEach(g => {
+    g.querySelectorAll('.skill-fill').forEach(b => b.style.animationPlayState = 'paused');
+    observer.observe(g);
+  });
+</script>
+</body>
+</html>
