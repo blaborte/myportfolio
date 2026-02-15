@@ -446,14 +446,95 @@
     .d1{animation-delay:.05s}.d2{animation-delay:.18s}.d3{animation-delay:.3s}.d4{animation-delay:.42s}.d5{animation-delay:.54s}
 
     /* ── RESPONSIVE ── */
+    /* ── HAMBURGER BUTTON ── */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      gap: 5px;
+      width: 38px; height: 38px;
+      background: var(--glass);
+      border: 1px solid var(--gb);
+      border-radius: 9px;
+      cursor: pointer;
+      padding: 8px;
+      transition: background var(--t), border-color var(--t);
+      flex-shrink: 0;
+      backdrop-filter: blur(12px);
+    }
+    .hamburger:hover { background: var(--glass-h); border-color: var(--gb-h); }
+    .hamburger span {
+      display: block; width: 100%; height: 2px;
+      background: var(--text); border-radius: 2px;
+      transition: transform .3s ease, opacity .3s ease;
+    }
+    .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    /* ── MOBILE DROPDOWN MENU ── */
+    .mobile-menu {
+      display: none;
+      position: fixed;
+      top: 62px; left: 0; right: 0;
+      background: rgba(5,12,26,.97);
+      border-bottom: 1px solid var(--gb);
+      backdrop-filter: blur(24px) saturate(1.6);
+      z-index: 199;
+      padding: 1rem 1.5rem 1.5rem;
+      flex-direction: column;
+      gap: .3rem;
+      transform: translateY(-10px);
+      opacity: 0;
+      transition: opacity .25s ease, transform .25s ease;
+    }
+    .mobile-menu.open {
+      display: flex;
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .mobile-menu a {
+      font-size: .95rem; font-weight: 500;
+      color: var(--muted); text-decoration: none;
+      padding: .75rem 1rem; border-radius: 10px;
+      transition: color var(--t), background var(--t);
+      border: 1px solid transparent;
+    }
+    .mobile-menu a:hover,
+    .mobile-menu a.active {
+      color: var(--text);
+      background: var(--glass);
+      border-color: var(--gb);
+    }
+    .mobile-menu a.active { color: var(--cyan); background: rgba(34,211,238,.08); border-color: rgba(34,211,238,.2); }
+    body.light .mobile-menu { background: rgba(240,244,255,.97); }
+    body.light .mobile-menu a:hover,
+    body.light .mobile-menu a.active { background: rgba(255,255,255,.7); border-color: rgba(0,0,0,.1); }
+
     @media(max-width:820px) {
       .hero-grid,.about-grid,.cgrid { grid-template-columns:1fr; }
       .hero-grid { text-align:center; }
       .hero-desc { max-width:100%; }
       .hero-btns,.socials { justify-content:center; }
       .avatar-wrap { margin-top:1rem; }
-      nav .nav-links { display:none; }
       .cbox { padding:2rem 1.5rem; }
+      nav .nav-links { display:none; }
+      .hamburger { display:flex; }
+      .wrap { padding:0 1.2rem; }
+      .sec { padding:4rem 0; }
+      .sec-h { font-size:clamp(1.4rem,5vw,1.9rem); }
+      .proj-grid { grid-template-columns:1fr !important; }
+      .sk-grid { grid-template-columns:1fr !important; }
+      .certs-grid { grid-template-columns:1fr !important; }
+      .tl-item { padding-left:2rem; }
+      .cgrid { gap:2rem; }
+      .hero-name { font-size:clamp(2.2rem,10vw,3.5rem); }
+    }
+    @media(max-width:480px) {
+      nav { padding:0 1rem; }
+      .hero-btns { flex-direction:column; align-items:center; }
+      .btn-p, .btn-g { width:100%; justify-content:center; }
+      .filter-row { gap:.4rem; }
     }
 
     /* ── LIGHT MODE ── */
@@ -576,7 +657,12 @@
     <li><a href="contact.html">Contact</a></li>
   </ul>
   <button id="theme-toggle" aria-label="Toggle theme" title="Toggle dark/light mode">🌙</button>
+  <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
+<!-- MOBILE MENU (injected by JS per page) -->
+<div class="mobile-menu" id="mobile-menu"></div>
 
 <!-- EDUCATION & EXPERIENCE -->
 <section class="sec" id="edu-exp">
@@ -1073,6 +1159,49 @@ window.addEventListener("scroll", () => {
 }, { passive: true });
 
 /* ── DARK / LIGHT MODE TOGGLE ── */
+/* ── Hamburger Menu ── */
+(function() {
+  const btn = document.getElementById('hamburger');
+  const menu = document.getElementById('mobile-menu');
+  if (!btn || !menu) return;
+
+  // Build menu links from desktop nav
+  const navLinks = document.querySelectorAll('.nav-links a');
+  navLinks.forEach(link => {
+    const a = document.createElement('a');
+    a.href = link.href;
+    a.textContent = link.textContent;
+    if (link.classList.contains('active')) a.classList.add('active');
+    a.addEventListener('click', () => closeMenu());
+    menu.appendChild(a);
+  });
+
+  function openMenu() {
+    btn.classList.add('open');
+    menu.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeMenu() {
+    btn.classList.remove('open');
+    menu.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  btn.addEventListener('click', () => {
+    btn.classList.contains('open') ? closeMenu() : openMenu();
+  });
+
+  // Close on outside click
+  document.addEventListener('click', (e) => {
+    if (!btn.contains(e.target) && !menu.contains(e.target)) closeMenu();
+  });
+
+  // Close on resize to desktop
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 820) closeMenu();
+  });
+})();
+
 const themeBtn = document.getElementById('theme-toggle');
 
 function applyTheme(theme) {
