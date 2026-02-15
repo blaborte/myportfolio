@@ -547,6 +547,8 @@
       --bg: #f0f4ff; --text: #0d1a36;
       background: #f0f4ff; color: #0d1a36;
     }
+    a.info-row { transition: border-color var(--t), background var(--t), transform var(--t); }
+    a.info-row:hover { border-color: rgba(34,211,238,.35); background: rgba(34,211,238,.06); transform: translateX(4px); cursor: pointer; }
   </style>
 </head>
 <body>
@@ -590,10 +592,10 @@
         <p>I'm passionate about bridging IT operations with security — understanding the full stack from helpdesk to threat detection. Currently seeking opportunities in IT support, network administration, or security operations.</p>
       </div>
       <div class="info-col">
-        <div class="info-row"><div class="i-ico">🖥️</div><div><div class="i-t">Home Lab Setup</div><div class="i-s">Proxmox VE · pfSense · Multiple VMs</div></div></div>
+        <a href="projects.html" class="info-row" style="text-decoration:none;color:inherit;"><div class="i-ico">🖥️</div><div><div class="i-t" style="color:var(--cyan);">Home Lab Setup ↗</div><div class="i-s">Proxmox VE · pfSense · Multiple VMs</div></div></a>
         <div class="info-row"><div class="i-ico">📍</div><div><div class="i-t">Location</div><div class="i-s">New York, NY · Fairfax, VA<br/>Remote · Hybrid · On-site</div></div></div>
         <div class="info-row"><div class="i-ico">🎯</div><div><div class="i-t">Target Roles</div><div class="i-s">IT Support · Network Admin · SOC Analyst</div></div></div>
-        <div class="info-row"><div class="i-ico">📚</div><div><div class="i-t">Currently Studying</div><div class="i-s">Cisco CCNA · Cybersecurity</div></div></div>
+        <a href="skills.html" class="info-row" style="text-decoration:none;color:inherit;"><div class="i-ico">📚</div><div><div class="i-t" style="color:var(--cyan);">Currently Studying ↗</div><div class="i-s">Cisco CCNA · Cybersecurity</div></div></a>
       </div>
     </div>
   </div>
