@@ -917,4 +917,14 @@ function applyTheme(theme) {
 try {
   applyTheme(localStorage.getItem('bl-theme') || 'dark');
 } catch(e) {
- 
+  applyTheme('dark');
+}
+
+themeBtn.addEventListener('click', () => {
+  const next = document.body.classList.contains('light') ? 'dark' : 'light';
+  try { localStorage.setItem('bl-theme', next); } catch(e) {}
+  applyTheme(next);
+});
+</script>
+</body>
+</html>
