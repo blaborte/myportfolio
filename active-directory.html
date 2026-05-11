@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Active Directory Home Lab — Baltazar Laborte</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;1,400&family=JetBrains+Mono:wght@400;500&family=Raleway:wght@800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #050c1a;
+      --glass:       rgba(255,255,255,0.055);
+      --glass-h:     rgba(255,255,255,0.09);
+      --gb:          rgba(255,255,255,0.11);
+      --gb-h:        rgba(255,255,255,0.22);
+      --shine:       rgba(255,255,255,0.07);
+      --text:        #e8f0ff;
+      --muted:       rgba(190,210,250,0.62);
+      --dim:         rgba(150,180,230,0.38);
+      --blue:        #4d9ef5;
+      --blue2:       #2563eb;
+      --cyan:        #22d3ee;
+      --violet:      #a78bfa;
+      --green:       #34d399;
+      --amber:       #fbbf24;
+      --it:   #34d399; --it-g:   rgba(52,211,153,.14);
+      --net:  #60a5fa; --net-g:  rgba(96,165,250,.14);
+      --sec:  #f472b6; --sec-g:  rgba(244,114,182,.14);
+      --cld:  #c084fc; --cld-g:  rgba(192,132,252,.14);
+      --r: 14px; --t: .25s cubic-bezier(.4,0,.2,1);
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Sora', sans-serif;
+      background: var(--bg); color: var(--text);
+      -webkit-font-smoothing: antialiased; overflow-x: hidden;
+    }
+
+    /* ── AMBIENT ── */
+    #ambient { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+    .orb { position: absolute; border-radius: 50%; filter: blur(90px); opacity: .16; animation: drift 20s ease-in-out infinite alternate; }
+    .o1 { width:750px; height:750px; background:radial-gradient(circle,#1a56d6,transparent 70%); top:-20%; left:-12%; animation-duration:24s; }
+    .o2 { width:550px; height:550px; background:radial-gradient(circle,#0e7490,transparent 70%); top:35%; right:-10%; animation-duration:18s; animation-delay:-6s; }
+    .o3 { width:450px; height:450px; background:radial-gradient(circle,#5b21b6,transparent 70%); bottom:5%; left:18%; animation-duration:22s; animation-delay:-12s; }
+    @keyframes drift { 0%{transform:translate(0,0) scale(1)} 50%{transform:translate(25px,-35px) scale(1.04)} 100%{transform:translate(-18px,28px) scale(.97)} }
+    body::before {
+      content:''; position:fixed; inset:0; z-index:1;
+      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size:180px; opacity:.022; pointer-events:none;
+    }
+    #net-canvas { position:fixed; inset:0; z-index:1; opacity:.35; pointer-events:none; }
+
+    /* ── NAV ── */
+    nav {
+      position:fixed; top:0; left:0; right:0; z-index:200; height:62px;
+      background:rgba(5,12,26,.75); border-bottom:1px solid var(--gb);
+      backdrop-filter:blur(22px) saturate(1.6);
+      display:flex; align-items:center; padding:0 2.5rem; gap:1.5rem;
+    }
+    .nav-logo { font-family:'Playfair Display',serif; font-size:1.1rem; color:var(--text); text-decoration:none; margin-right:auto; display:flex; align-items:center; gap:.55rem; }
+    .npulse { width:8px; height:8px; border-radius:50%; background:var(--cyan); animation:cpulse 2.5s ease-in-out infinite; }
+    @keyframes cpulse { 0%,100%{box-shadow:0 0 0 0 rgba(34,211,238,.35)} 55%{box-shadow:0 0 0 7px transparent} }
+    .nav-links { display:flex; list-style:none; gap:.15rem; }
+    .nav-links a { font-size:.78rem; font-weight:500; color:var(--muted); text-decoration:none; padding:.35rem .7rem; border-radius:7px; transition:color var(--t),background var(--t); }
+    .nav-links a:hover { color:var(--text); background:var(--glass); }
+    .nav-links a.active { color:var(--cyan); background:rgba(34,211,238,.08); box-shadow:inset 0 -2px 0 var(--cyan); }
+
+    /* ── LAYOUT ── */
+    .wrap { position:relative; z-index:2; max-width:1100px; margin:0 auto; padding:0 2rem; }
+    .sec  { padding:5.5rem 0 3rem; }
+    .eyebrow { font-family:'JetBrains Mono',monospace; font-size:.7rem; font-weight:500; letter-spacing:.13em; text-transform:uppercase; color:var(--cyan); margin-bottom:.65rem; display:flex; align-items:center; gap:.6rem; }
+    .eyebrow::before { content:''; width:24px; height:1px; background:var(--cyan); opacity:.5; }
+    .sec-h { font-family:'Playfair Display',serif; font-size:clamp(1.7rem,3vw,2.3rem); font-weight:600; letter-spacing:-.025em; margin-bottom:.5rem; }
+
+    /* ── BACK LINK ── */
+    .back-link {
+      display:inline-flex; align-items:center; gap:.45rem;
+      font-size:.8rem; font-weight:600; color:var(--muted); text-decoration:none;
+      padding:.35rem .8rem; border-radius:8px; border:1px solid var(--gb);
+      background:var(--glass); backdrop-filter:blur(12px);
+      transition:color var(--t),background var(--t),border-color var(--t);
+      margin-bottom:2rem;
+    }
+    .back-link:hover { color:var(--text); background:var(--glass-h); border-color:var(--gb-h); }
+
+    /* ── PAGE HEADER ── */
+    .proj-header {
+      border-radius:20px; padding:2.5rem;
+      background:var(--glass); border:1px solid rgba(52,211,153,.2);
+      backdrop-filter:blur(18px);
+      box-shadow:0 16px 60px rgba(0,0,0,.4), inset 0 1px 0 var(--shine);
+      position:relative; overflow:hidden; margin-bottom:2rem;
+    }
+    .proj-header::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,var(--it),var(--cyan),var(--blue)); }
+    .ph-top { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-bottom:1.2rem; }
+    .ph-ico { width:52px; height:52px; border-radius:14px; background:var(--it-g); border:1px solid rgba(52,211,153,.25); display:flex; align-items:center; justify-content:center; font-size:1.5rem; flex-shrink:0; }
+    .ph-title { font-family:'Playfair Display',serif; font-size:clamp(1.4rem,3vw,2rem); font-weight:600; letter-spacing:-.02em; margin-bottom:.3rem; }
+    .ph-sub { font-size:.85rem; color:var(--muted); }
+    .pstat { font-family:'JetBrains Mono',monospace; font-size:.64rem; font-weight:500; padding:.2rem .62rem; border-radius:100px; }
+    .sd { background:rgba(52,211,153,.12); color:var(--it); border:1px solid rgba(52,211,153,.2); }
+    .ph-desc { font-size:.9rem; color:var(--muted); line-height:1.85; max-width:740px; }
+
+    /* ── TAG STRIP ── */
+    .tag-strip { display:flex; flex-wrap:wrap; gap:.35rem; margin-top:1.2rem; }
+    .tag { font-size:.67rem; font-weight:600; padding:.19rem .56rem; border-radius:6px; }
+    .t-it    { background:rgba(52,211,153,.1);  color:var(--it);   border:1px solid rgba(52,211,153,.2); }
+    .t-tool  { background:rgba(255,255,255,.05); color:var(--muted); border:1px solid var(--gb); }
+
+    /* ── CONTENT GRID ── */
+    .content-grid { display:grid; grid-template-columns:1fr 340px; gap:1.5rem; align-items:start; }
+
+    /* ── CONTENT BLOCKS ── */
+    .block {
+      border-radius:16px; padding:1.8rem;
+      background:var(--glass); border:1px solid var(--gb);
+      backdrop-filter:blur(18px);
+      box-shadow:0 4px 20px rgba(0,0,0,.25), inset 0 1px 0 var(--shine);
+      margin-bottom:1.5rem;
+    }
+    .block-label {
+      font-family:'JetBrains Mono',monospace; font-size:.65rem; font-weight:600;
+      letter-spacing:.1em; text-transform:uppercase; color:var(--cyan);
+      margin-bottom:1rem; display:flex; align-items:center; gap:.5rem;
+    }
+    .block-label::before { content:''; width:16px; height:1px; background:var(--cyan); opacity:.5; }
+    .bl-list { list-style:none; display:flex; flex-direction:column; gap:.55rem; }
+    .bl-list li { font-size:.85rem; color:var(--muted); line-height:1.7; padding-left:1.2rem; position:relative; }
+    .bl-list li::before { content:'▸'; position:absolute; left:0; color:var(--it); font-size:.72rem; top:.1rem; }
+
+    /* ── ENV TABLE ── */
+    .env-table { width:100%; border-collapse:collapse; }
+    .env-table tr { border-bottom:1px solid var(--gb); }
+    .env-table tr:last-child { border-bottom:none; }
+    .env-table td { padding:.65rem 0; font-size:.82rem; }
+    .env-table td:first-child { color:var(--dim); font-family:'JetBrains Mono',monospace; font-size:.72rem; width:45%; }
+    .env-table td:last-child { color:var(--text); font-weight:500; text-align:right; }
+
+    /* ── STEP GUIDE ── */
+    .step {
+      display:flex; gap:1.2rem; padding:.9rem 0;
+      border-bottom:1px solid var(--gb);
+    }
+    .step:last-child { border-bottom:none; padding-bottom:0; }
+    .step-num {
+      width:32px; height:32px; border-radius:50%; flex-shrink:0;
+      background:var(--it-g); border:1px solid rgba(52,211,153,.3);
+      display:flex; align-items:center; justify-content:center;
+      font-family:'JetBrains Mono',monospace; font-size:.72rem; font-weight:700;
+      color:var(--it); margin-top:.1rem;
+    }
+    .step-body {}
+    .step-title { font-size:.88rem; font-weight:700; margin-bottom:.3rem; }
+    .step-desc { font-size:.81rem; color:var(--muted); line-height:1.7; }
+    .step-cmd {
+      display:block; margin-top:.6rem;
+      font-family:'JetBrains Mono',monospace; font-size:.73rem;
+      color:var(--cyan); background:rgba(0,0,0,.3);
+      border:1px solid var(--gb); border-radius:7px;
+      padding:.45rem .8rem; white-space:pre-wrap; word-break:break-all;
+    }
+    .step-note {
+      display:flex; gap:.5rem; align-items:flex-start;
+      margin-top:.6rem; padding:.5rem .8rem;
+      border-radius:7px; background:rgba(251,191,36,.07);
+      border:1px solid rgba(251,191,36,.18); font-size:.76rem; color:var(--muted); line-height:1.6;
+    }
+    .step-note::before { content:'💡'; flex-shrink:0; }
+    body.light .step-cmd { background:rgba(0,0,0,.06); }
+    body.light .step-note { background:rgba(251,191,36,.06); }
+
+    /* ── CODE SNIPPET ── */
+    .code-block {
+      background:rgba(0,0,0,.4); border:1px solid var(--gb);
+      border-radius:10px; padding:1rem 1.2rem;
+      font-family:'JetBrains Mono',monospace; font-size:.75rem;
+      color:var(--muted); line-height:1.7; overflow-x:auto;
+      margin-top:.8rem;
+    }
+    .code-block .kw { color:var(--cyan); }
+    .code-block .cm { color:var(--dim); font-style:italic; }
+    .code-block .str { color:var(--green); }
+
+    /* ── SNAPSHOTS GRID ── */
+    .snap-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1rem; margin-top: .5rem;
+    }
+    .snap-placeholder {
+      aspect-ratio: 16/10; border-radius: 10px;
+      background: rgba(255,255,255,.03);
+      border: 1.5px dashed rgba(255,255,255,.12);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: .5rem;
+      color: var(--dim); font-size: .72rem;
+      font-family: 'JetBrains Mono', monospace;
+      transition: border-color var(--t), background var(--t);
+      cursor: default;
+    }
+    .snap-placeholder:hover {
+      border-color: rgba(34,211,238,.3);
+      background: rgba(34,211,238,.04);
+      color: var(--muted);
+    }
+    .snap-placeholder .sp-icon { font-size: 1.5rem; opacity: .4; }
+    body.light .snap-placeholder { background: rgba(0,0,0,.03); border-color: rgba(0,0,0,.12); }
+    body.light .snap-placeholder:hover { border-color: rgba(8,145,178,.3); background: rgba(8,145,178,.04); }
+
+    /* ── OUTCOME CARDS ── */
+    .outcome-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+    .outcome-card {
+      border-radius:12px; padding:1.1rem 1.2rem;
+      background:rgba(52,211,153,.06); border:1px solid rgba(52,211,153,.15);
+    }
+    .oc-icon { font-size:1.3rem; margin-bottom:.5rem; }
+    .oc-title { font-size:.82rem; font-weight:700; margin-bottom:.3rem; }
+    .oc-desc { font-size:.77rem; color:var(--muted); line-height:1.6; }
+
+    /* ── SIDEBAR ── */
+    .sidebar { display:flex; flex-direction:column; gap:1.5rem; }
+
+    /* ── FOOTER ── */
+    footer {
+      position:relative; z-index:2; text-align:center; padding:2rem;
+      border-top:1px solid var(--gb); color:var(--dim); font-size:.78rem;
+      display:flex; justify-content:center; align-items:center; gap:.75rem;
+    }
+    footer a { color:var(--muted); text-decoration:none; transition:color var(--t); }
+    footer a:hover { color:var(--text); }
+
+    /* ── MISC ── */
+    #scroll-bar { position:fixed; top:0; left:0; height:3px; width:0%; background:linear-gradient(90deg,var(--blue2),var(--cyan),var(--violet)); z-index:999; transition:width .05s linear; box-shadow:0 0 8px rgba(34,211,238,.5); }
+    #back-top { position:fixed; bottom:2rem; right:2rem; z-index:300; width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg,var(--blue2),#1d4ed8); border:1px solid rgba(96,165,250,.3); box-shadow:0 4px 20px rgba(37,99,235,.4); display:flex; align-items:center; justify-content:center; cursor:pointer; color:#fff; font-size:1.1rem; opacity:0; transform:translateY(12px); transition:opacity .3s ease,transform .3s ease; pointer-events:none; }
+    #back-top.visible { opacity:1; transform:translateY(0); pointer-events:auto; }
+    #back-top:hover { box-shadow:0 8px 28px rgba(37,99,235,.6); transform:translateY(-3px); }
+
+    /* ── HAMBURGER ── */
+    .hamburger { display:none; flex-direction:column; justify-content:space-between; width:36px; height:36px; padding:8px; border-radius:8px; background:var(--glass); border:1px solid var(--gb); cursor:pointer; gap:5px; }
+    .hamburger span { display:block; width:100%; height:2px; background:var(--text); border-radius:2px; transition:transform .3s ease,opacity .3s ease; }
+    .hamburger.open span:nth-child(1) { transform:translateY(7px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity:0; }
+    .hamburger.open span:nth-child(3) { transform:translateY(-7px) rotate(-45deg); }
+    .mobile-menu { display:none; position:fixed; top:62px; left:0; right:0; background:rgba(5,12,26,.97); border-bottom:1px solid var(--gb); backdrop-filter:blur(24px); z-index:199; padding:1rem 1.5rem 1.5rem; flex-direction:column; gap:.3rem; opacity:0; transform:translateY(-10px); transition:opacity .25s ease,transform .25s ease; }
+    .mobile-menu.open { display:flex; opacity:1; transform:translateY(0); }
+    .mobile-menu a { font-size:.95rem; font-weight:500; color:var(--muted); text-decoration:none; padding:.75rem 1rem; border-radius:10px; transition:color var(--t),background var(--t); border:1px solid transparent; }
+    .mobile-menu a:hover,.mobile-menu a.active { color:var(--text); background:var(--glass); border-color:var(--gb); }
+    .mobile-menu a.active { color:var(--cyan); background:rgba(34,211,238,.08); border-color:rgba(34,211,238,.2); }
+
+    /* ── THEME TOGGLE ── */
+    #theme-toggle { width:38px; height:38px; border-radius:50%; background:var(--glass); border:1px solid var(--gb); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:1rem; transition:background var(--t),border-color var(--t),transform var(--t); flex-shrink:0; backdrop-filter:blur(12px); }
+    #theme-toggle:hover { background:var(--glass-h); border-color:var(--gb-h); transform:rotate(20deg) scale(1.1); }
+
+    /* ── LIGHT MODE ── */
+    body.light {
+      --bg:#f0f4ff; --glass:rgba(0,0,0,0.045); --glass-h:rgba(0,0,0,0.08); --gb:rgba(0,0,0,0.1); --gb-h:rgba(0,0,0,0.18); --shine:rgba(255,255,255,0.6); --text:#0d1a36; --muted:rgba(30,50,100,0.62); --dim:rgba(30,60,120,0.35);
+      --blue:#1a56d6; --blue2:#2563eb; --cyan:#0891b2; --violet:#7c3aed; --green:#059669;
+      --it:#059669; --it-g:rgba(5,150,105,.12); --net:#1a56d6; --net-g:rgba(26,86,214,.12); --sec:#db2777; --sec-g:rgba(219,39,119,.12); --cld:#7c3aed; --cld-g:rgba(124,58,237,.12);
+    }
+    body.light #net-canvas { opacity:.15; }
+    body.light .orb { opacity:.08; }
+    body.light nav { background:rgba(240,244,255,.85); border-bottom-color:rgba(0,0,0,.1); }
+    body.light .block, body.light .proj-header, body.light .outcome-card { background:rgba(255,255,255,.7); border-color:rgba(0,0,0,.1); }
+    body.light .code-block { background:rgba(0,0,0,.06); }
+    body.light footer { background:rgba(240,244,255,.8); }
+    body.light .mobile-menu { background:rgba(240,244,255,.97); }
+    html.light-preload body { --bg:#f0f4ff; --text:#0d1a36; background:#f0f4ff; color:#0d1a36; }
+
+    @media(max-width:820px) {
+      .content-grid { grid-template-columns:1fr; }
+      nav .nav-links { display:none; }
+      .hamburger { display:flex; }
+      .wrap { padding:0 1.2rem; }
+      .outcome-grid { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+<script>
+  (function() {
+    try { if (localStorage.getItem('bl-theme') === 'light') document.documentElement.classList.add('light-preload'); } catch(e) {}
+  })();
+</script>
+<div id="scroll-bar"></div>
+<button id="back-top" aria-label="Back to top">↑</button>
+<div id="ambient"><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div></div>
+<canvas id="net-canvas"></canvas>
+
+<nav>
+  <a class="nav-logo" href="index.html"><span class="npulse"></span>Baltazar Laborte</a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="about.html">About</a></li>
+    <li><a href="education.html">Education</a></li>
+    <li><a href="projects.html" class="active">Projects</a></li>
+    <li><a href="skills.html">Skills</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+  <button id="theme-toggle" aria-label="Toggle theme" title="Toggle dark/light mode">🌙</button>
+  <button class="hamburger" id="hamburger" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+</nav>
+<div class="mobile-menu" id="mobile-menu"></div>
+
+<section class="sec">
+  <div class="wrap">
+
+    <a class="back-link rv" href="projects.html">← Back to Projects</a>
+
+    <div class="eyebrow rv">IT Support · Home Lab</div>
+    <h1 class="sec-h rv">Active Directory Home Lab</h1>
+
+    <!-- PAGE HEADER -->
+    <div class="proj-header rv">
+      <div class="ph-top">
+        <div style="display:flex;align-items:center;gap:1rem">
+          <div class="ph-ico">🖥️</div>
+          <div>
+            <div class="ph-title">Active Directory Home Lab</div>
+            <div class="ph-sub">Windows Server 2025 · VirtualBox · blaborte.local</div>
+          </div>
+        </div>
+        <span class="pstat sd">Completed</span>
+      </div>
+      <p class="ph-desc">Built a fully functional Active Directory environment from scratch on a personal homelab using VirtualBox. Simulated a real corporate IT environment complete with domain controllers, organizational units, group policies, and user lifecycle management — replicating the infrastructure found in enterprise environments and directly applicable to IT admin and helpdesk roles.</p>
+      <div class="tag-strip">
+        <span class="tag t-it">IT Support</span>
+        <span class="tag t-tool">Windows Server 2025</span>
+        <span class="tag t-tool">AD DS</span>
+        <span class="tag t-tool">GPO</span>
+        <span class="tag t-tool">PowerShell</span>
+        <span class="tag t-tool">DNS / DHCP</span>
+        <span class="tag t-tool">VirtualBox</span>
+        <span class="tag t-tool">Splunk</span>
+        <span class="tag t-tool">LDAP</span>
+      </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="content-grid">
+
+      <!-- LEFT COLUMN -->
+      <div>
+
+        <!-- Objectives -->
+        <div class="block rv">
+          <div class="block-label">Objectives</div>
+          <ul class="bl-list">
+            <li>Simulate a corporate Windows domain environment for hands-on IT administration practice</li>
+            <li>Learn AD DS architecture — forests, domains, trees, sites, and trust relationships</li>
+            <li>Practice Group Policy Object (GPO) design, inheritance, and enforcement across OUs</li>
+            <li>Understand user provisioning, role-based access control, and OU delegation</li>
+            <li>Integrate DNS, DHCP, and LDAP services within the domain infrastructure</li>
+            <li>Forward security event logs to Splunk for SIEM correlation and threat detection practice</li>
+          </ul>
+        </div>
+
+        <!-- What Was Built -->
+        <div class="block rv">
+          <div class="block-label">What Was Built</div>
+          <ul class="bl-list">
+            <li>Deployed <strong>Windows Server 2025</strong> as a Primary Domain Controller (PDC) with AD DS, DNS, and DHCP roles installed and configured</li>
+            <li>Created a second Server 2025 VM as a <strong>Backup Domain Controller</strong> for redundancy and failover testing</li>
+            <li>Structured OUs mirroring a real org: <strong>Departments → IT, HR, Finance, Management</strong> with nested sub-OUs per team</li>
+            <li>Provisioned <strong>50+ test user accounts</strong> via PowerShell bulk script simulating onboarding at scale</li>
+            <li>Configured <strong>8 Group Policy Objects</strong> covering: password policy, account lockout, desktop lockdown, drive mapping, software restriction, and screensaver timeout</li>
+            <li>Joined <strong>Windows 10 and 11 client VMs</strong> to the domain and verified login, policy application, and access control</li>
+            <li>Set up a <strong>Read-Only Domain Controller (RODC)</strong> to simulate branch office / remote site scenarios</li>
+            <li>Forwarded <strong>Security event logs</strong> (Event ID 4624, 4625, 4740) to Splunk via Universal Forwarder for SIEM correlation</li>
+          </ul>
+
+          <div class="block-label" style="margin-top:1.4rem">PowerShell — Bulk User Provisioning</div>
+          <div class="code-block">
+<span class="cm"># Bulk create 50 users across departments</span>
+<span class="kw">$departments</span> = <span class="str">@("IT","HR","Finance","Management")</span>
+<span class="kw">$password</span> = ConvertTo-SecureString <span class="str">"Lab@2024!"</span> -AsPlainText -Force
+
+<span class="kw">foreach</span> (<span class="kw">$dept</span> <span class="kw">in</span> <span class="kw">$departments</span>) {
+  <span class="kw">1..12</span> | <span class="kw">ForEach-Object</span> {
+    New-ADUser -Name <span class="str">"$dept.User$_"</span> `
+      -GivenName <span class="str">"$dept"</span> -Surname <span class="str">"User$_"</span> `
+      -UserPrincipalName <span class="str">"$dept.user$_@blaborte.local"</span> `
+      -Path <span class="str">"OU=$dept,DC=blaborte,DC=local"</span> `
+      -AccountPassword <span class="kw">$password</span> -Enabled <span class="kw">$true</span>
+  }
+}</div>
+        </div>
+
+        <!-- Step-by-Step Guide -->
+        <div class="block rv">
+          <div class="block-label">Step-by-Step Setup Guide</div>
+
+          <div class="step">
+            <div class="step-num">01</div>
+            <div class="step-body">
+              <div class="step-title">Create VMs in VirtualBox</div>
+              <div class="step-desc">In VirtualBox Manager, create two VMs for domain controllers and one or two Windows 10/11 client VMs. Assign each at least 2 vCPUs and 4GB RAM. Set the network adapter to <strong>Internal Network</strong> (same network name, e.g. "adlab") so all VMs can communicate with each other, and add a second NAT adapter on the DC for internet access.</div>
+              <div class="step-note">Download the Windows Server 2025 ISO from Microsoft's Evaluation Center (180-day free eval). In VirtualBox, attach it under VM Settings → Storage → Controller: IDE → add optical drive.</div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-num">02</div>
+            <div class="step-body">
+              <div class="step-title">Install Windows Server 2025 &amp; Set a Static IP</div>
+              <div class="step-desc">Install Windows Server 2025 (Desktop Experience) on your primary VM. Once booted, set a static IP before promoting to a domain controller — DNS must be stable.</div>
+              <code class="step-cmd"># In PowerShell (on the Server VM)
+New-NetIPAddress -InterfaceAlias "Ethernet" -IPAddress 192.168.10.10 -PrefixLength 24 -DefaultGateway 192.168.10.1
+Set-DnsClientServerAddress -InterfaceAlias "Ethernet" -ServerAddresses 127.0.0.1</code>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-num">03</div>
+            <div class="step-body">
+              <div class="step-title">Install AD DS &amp; DNS Roles</div>
+              <div class="step-desc">Open Server Manager → Add Roles and Features → select Active Directory Domain Services and DNS Server. After installation, click the flag notification to promote the server to a Domain Controller.</div>
+              <code class="step-cmd"># Or via PowerShell
+Install-WindowsFeature -Name AD-Domain-Services, DNS -IncludeManagementTools</code>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-num">04</div>
+            <div class="step-body">
+              <div class="step-title">Promote to Domain Controller &amp; Create the Forest</div>
+              <div class="step-desc">Run the AD DS Configuration Wizard. Choose "Add a new forest" and set your domain name. Set the Forest and Domain Functional Levels to Windows Server 2016 or higher. Create a DSRM password, then let the server restart.</div>
+              <code class="step-cmd"># Via PowerShell
+Install-ADDSForest -DomainName "blaborte.local" -DomainNetbiosName "BLABORTE" -InstallDns -Force</code>
+              <div class="step-note">After reboot, log in with BLABORTE\Administrator. The server is now a Domain Controller.</div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-num">05</div>
+            <div class="step-body">
+              <div class="step-title">Create Organizational Units (OUs)</div>
+              <div class="step-desc">Open Active Directory Users and Computers (ADUC). Right-click your domain → New → Organizational Unit. Create top-level OUs for each department, then nest sub-OUs as needed.</div>
+              <code class="step-cmd"># Via PowerShell
+$base = "DC=blaborte,DC=local"
+foreach ($ou in @("IT","HR","Finance","Management")) {
+  New-ADOrganizationalUnit -Name $ou -Path $base
+}</code>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-num">06</div>
+            <div class="step-body">
+              <div class="step-title">Bulk Create User Accounts via PowerShell</div>
+              <div class="step-desc">Rather than creating users one-by-one in ADUC, use PowerShell to provision users at scale. This simulates real onboarding workflows and is great for GPO testing.</div>
+              <code class="step-cmd">$password = ConvertTo-SecureString "Lab@2024!" -AsPlainText -Force
+$departments = @("IT","HR","Finance","Management")
+
+foreach ($dept in $departments) {
+  1..12 | ForEach-Object {
+    New-ADUser -Name "$dept.User$_" `
+      -UserPrincipalName "$dept.user$_@blaborte.local" `
+      -Path "OU=$dept,DC=blaborte,DC=local" `
+      -AccountPassword $password -Enabled $true
+  }
+}</code>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-num">07</div>
+            <div class="step-body">
+              <div class="step-title">Configure Group Policy Objects (GPOs)</div>
+              <div class="step-desc">Open Group Policy Management (gpmc.msc). Right-click an OU → Create a GPO and Link it. Edit the GPO to configure settings. Apply and test by running gpupdate /force on a client.</div>
+              <code class="step-cmd"># Force policy refresh on client
+gpupdate /force
+
+# Check applied policies
+gpresult /r</code>
+              <div class="step-note">Start with Password Policy (under Computer Config → Windows Settings → Security Settings → Account Policies). This applies domain-wide from the Default Domain Policy.</div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-num">08</div>
+            <div class="step-body">
+              <div class="step-title">Join Client VMs to the Domain</div>
+              <div class="step-desc">On each Windows 10/11 client VM, set the DNS server to point to your DC's IP. Then join the domain via Settings → System → About → Rename this PC (Advanced).</div>
+              <code class="step-cmd"># Set DNS to point to DC
+Set-DnsClientServerAddress -InterfaceAlias "Ethernet" -ServerAddresses 192.168.10.10
+
+# Join domain via PowerShell
+Add-Computer -DomainName "blaborte.local" -Credential (Get-Credential) -Restart</code>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-num">09</div>
+            <div class="step-body">
+              <div class="step-title">Set Up a Backup Domain Controller</div>
+              <div class="step-desc">Install Windows Server 2025 on a second VM, set a static IP, and point its DNS to the primary DC. Then join it to the domain and promote it as an additional domain controller.</div>
+              <code class="step-cmd"># On the second server, after joining the domain:
+Install-WindowsFeature -Name AD-Domain-Services -IncludeManagementTools
+Install-ADDSDomainController -DomainName "blaborte.local" -InstallDns -Credential (Get-Credential) -Force</code>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-num">10</div>
+            <div class="step-body">
+              <div class="step-title">Forward Event Logs to Splunk</div>
+              <div class="step-desc">Install the Splunk Universal Forwarder on your Domain Controller. Configure it to forward Windows Security event logs to your Splunk instance for SIEM monitoring and alerting.</div>
+              <code class="step-cmd"># inputs.conf on the forwarder
+[WinEventLog://Security]
+disabled = 0
+index = wineventlog
+evt_resolve_ad_obj = 1</code>
+              <div class="step-note">Key events to watch: 4625 (failed logon), 4740 (lockout), 4728 (group membership change). Build Splunk dashboards and alerts around these for SOC practice.</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Key Learnings -->
+        <div class="block rv">
+          <div class="block-label">Key Learnings</div>
+          <ul class="bl-list">
+            <li>Gained deep understanding of <strong>Kerberos authentication</strong>, LDAP queries, and AD site replication topology</li>
+            <li>Troubleshot domain join failures, GPO not applying (gpresult /r), and DNS resolution issues across VLANs</li>
+            <li>Learned how attackers enumerate AD using tools like <strong>BloodHound</strong> and <strong>ldapdomaindump</strong> — to better understand how to defend it</li>
+            <li>Understood the security impact of misconfigured delegation and over-privileged group membership</li>
+            <li>Built PowerShell automation skills for user management, AD reporting, and bulk operations</li>
+            <li>Practiced reading Windows Security event logs and mapping them to MITRE ATT&amp;CK tactics</li>
+          </ul>
+        </div>
+
+        <!-- Outcomes -->
+        <div class="block rv">
+          <div class="block-label">Outcomes</div>
+          <div class="outcome-grid">
+            <div class="outcome-card">
+              <div class="oc-icon">🏢</div>
+              <div class="oc-title">Enterprise-Ready Skills</div>
+              <div class="oc-desc">Directly applicable to IT admin and helpdesk roles requiring AD user management, GPO troubleshooting, and domain support.</div>
+            </div>
+            <div class="outcome-card">
+              <div class="oc-icon">🔍</div>
+              <div class="oc-title">SIEM Integration</div>
+              <div class="oc-desc">Correlated AD login events with Splunk to detect brute-force attempts, account lockouts, and suspicious lateral movement.</div>
+            </div>
+            <div class="outcome-card">
+              <div class="oc-icon">🛡️</div>
+              <div class="oc-title">Attacker Perspective</div>
+              <div class="oc-desc">Practiced AD enumeration as an attacker to understand misconfigurations — building a defender mindset for future SOC work.</div>
+            </div>
+            <div class="outcome-card">
+              <div class="oc-icon">🚀</div>
+              <div class="oc-title">Future Roadmap</div>
+              <div class="oc-desc">Lab serves as a living environment for upcoming projects: Azure AD Connect, MFA with RADIUS, and internal PKI/Certificate Authority.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Snapshots -->
+        <div class="block rv">
+          <div class="block-label">Snapshots</div>
+          <div class="snap-grid">
+            <div class="snap-placeholder"><span class="sp-icon">🖼️</span>Coming soon</div>
+            <div class="snap-placeholder"><span class="sp-icon">🖼️</span>Coming soon</div>
+            <div class="snap-placeholder"><span class="sp-icon">🖼️</span>Coming soon</div>
+            <div class="snap-placeholder"><span class="sp-icon">🖼️</span>Coming soon</div>
+            <div class="snap-placeholder"><span class="sp-icon">🖼️</span>Coming soon</div>
+            <div class="snap-placeholder"><span class="sp-icon">🖼️</span>Coming soon</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- SIDEBAR -->
+      <div class="sidebar">
+
+        <!-- Lab Environment -->
+        <div class="block rv">
+          <div class="block-label">Lab Environment</div>
+          <table class="env-table">
+            <tr><td>Hypervisor</td><td>VirtualBox 7.x</td></tr>
+            <tr><td>DC OS</td><td>Windows Server 2025</td></tr>
+            <tr><td>Clients</td><td>Windows 10 / 11 VMs</td></tr>
+            <tr><td>Network</td><td>VirtualBox Internal Network</td></tr>
+            <tr><td>Domain Name</td><td>blaborte.local</td></tr>
+            <tr><td>Users Created</td><td>50+ (bulk PS)</td></tr>
+            <tr><td>GPOs Applied</td><td>8 policies</td></tr>
+            <tr><td>Log Forwarding</td><td>Splunk SIEM</td></tr>
+            <tr><td>Status</td><td>✅ Completed</td></tr>
+          </table>
+        </div>
+
+        <!-- Key Event IDs Monitored -->
+        <div class="block rv">
+          <div class="block-label">Event IDs Monitored</div>
+          <table class="env-table">
+            <tr><td>4624</td><td>Successful logon</td></tr>
+            <tr><td>4625</td><td>Failed logon</td></tr>
+            <tr><td>4740</td><td>Account lockout</td></tr>
+            <tr><td>4648</td><td>Explicit credential use</td></tr>
+            <tr><td>4728</td><td>Member added to group</td></tr>
+            <tr><td>4768</td><td>Kerberos TGT request</td></tr>
+          </table>
+        </div>
+
+        <!-- GPOs Configured -->
+        <div class="block rv">
+          <div class="block-label">GPOs Configured</div>
+          <ul class="bl-list">
+            <li>Password Policy (complexity, length, expiry)</li>
+            <li>Account Lockout (5 attempts, 30 min)</li>
+            <li>Desktop Lockdown (wallpaper, Control Panel)</li>
+            <li>Network Drive Mapping by OU</li>
+            <li>Software Restriction Policy</li>
+            <li>Screensaver Timeout + Lock</li>
+            <li>Windows Firewall via GPO</li>
+            <li>Audit Policy (logon, object access)</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span>© 2026</span><span>·</span>
+  <a href="index.html">Baltazar Laborte</a>
+  <span>·</span><span>HomeLab Portfolio</span>
+</footer>
+
+<script>
+/* Network canvas */
+const canvas = document.getElementById('net-canvas');
+const ctx = canvas.getContext('2d');
+let W, H, pts = [];
+function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+resize();
+window.addEventListener('resize', () => { resize(); buildPts(); });
+function buildPts() { pts = []; const n = Math.floor((W * H) / 22000); for (let i = 0; i < n; i++) { pts.push({ x: Math.random()*W, y: Math.random()*H, vx: (Math.random()-.5)*.45, vy: (Math.random()-.5)*.45, r: Math.random()*2+1.2 }); } }
+buildPts();
+function draw() { ctx.clearRect(0,0,W,H); for (let p of pts) { p.x+=p.vx; p.y+=p.vy; if(p.x<0||p.x>W)p.vx*=-1; if(p.y<0||p.y>H)p.vy*=-1; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fillStyle='rgba(100,160,255,0.55)'; ctx.fill(); } for(let i=0;i<pts.length;i++){for(let j=i+1;j<pts.length;j++){const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,dist=Math.sqrt(dx*dx+dy*dy);if(dist<130){ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.strokeStyle=`rgba(77,158,245,${(1-dist/130)*.28})`;ctx.lineWidth=.8;ctx.stroke();}}} requestAnimationFrame(draw); }
+draw();
+
+/* Scroll reveal */
+const rvObs = new IntersectionObserver(entries => {
+  entries.forEach((e, i) => { if (e.isIntersecting) { setTimeout(() => { e.target.style.opacity='1'; e.target.style.transform='none'; }, (i%4)*75); rvObs.unobserve(e.target); } });
+}, { threshold: .1 });
+document.querySelectorAll('.rv').forEach(el => { el.style.opacity='0'; el.style.transform='translateY(24px)'; el.style.transition='opacity .6s ease,transform .6s ease'; rvObs.observe(el); });
+
+/* Scroll progress */
+const scrollBar = document.getElementById('scroll-bar');
+const backTop = document.getElementById('back-top');
+window.addEventListener('scroll', () => {
+  const pct = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+  scrollBar.style.width = pct + '%';
+  backTop.classList.toggle('visible', window.scrollY > 400);
+}, { passive: true });
+backTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+/* Hamburger */
+(function() {
+  const btn = document.getElementById('hamburger');
+  const menu = document.getElementById('mobile-menu');
+  if (!btn || !menu) return;
+  document.querySelectorAll('.nav-links a').forEach(link => {
+    const a = document.createElement('a');
+    a.href = link.href; a.textContent = link.textContent;
+    if (link.classList.contains('active')) a.classList.add('active');
+    a.addEventListener('click', closeMenu);
+    menu.appendChild(a);
+  });
+  function openMenu() { btn.classList.add('open'); menu.classList.add('open'); document.body.style.overflow='hidden'; }
+  function closeMenu() { btn.classList.remove('open'); menu.classList.remove('open'); document.body.style.overflow=''; }
+  btn.addEventListener('click', () => btn.classList.contains('open') ? closeMenu() : openMenu());
+  document.addEventListener('click', e => { if (!btn.contains(e.target) && !menu.contains(e.target)) closeMenu(); });
+  window.addEventListener('resize', () => { if (window.innerWidth > 820) closeMenu(); });
+})();
+
+/* Theme toggle */
+const themeBtn = document.getElementById('theme-toggle');
+function applyTheme(theme) {
+  document.documentElement.classList.remove('light-preload');
+  if (theme === 'light') { document.body.classList.add('light'); themeBtn.textContent='☀️'; themeBtn.title='Switch to dark mode'; }
+  else { document.body.classList.remove('light'); themeBtn.textContent='🌙'; themeBtn.title='Switch to light mode'; }
+}
+try { applyTheme(localStorage.getItem('bl-theme') || 'dark'); } catch(e) { applyTheme('dark'); }
+themeBtn.addEventListener('click', () => {
+  const next = document.body.classList.contains('light') ? 'dark' : 'light';
+  try { localStorage.setItem('bl-theme', next); } catch(e) {}
+  applyTheme(next);
+});
+</script>
+</body>
+</html>

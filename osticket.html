@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ticketing System (osTicket) — Baltazar Laborte</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;1,400&family=JetBrains+Mono:wght@400;500&family=Raleway:wght@800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #050c1a;
+      --glass:       rgba(255,255,255,0.055);
+      --glass-h:     rgba(255,255,255,0.09);
+      --gb:          rgba(255,255,255,0.11);
+      --gb-h:        rgba(255,255,255,0.22);
+      --shine:       rgba(255,255,255,0.07);
+      --text:        #e8f0ff;
+      --muted:       rgba(190,210,250,0.62);
+      --dim:         rgba(150,180,230,0.38);
+      --blue:        #4d9ef5;
+      --blue2:       #2563eb;
+      --cyan:        #22d3ee;
+      --violet:      #a78bfa;
+      --green:       #34d399;
+      --amber:       #fbbf24;
+      --it:   #34d399; --it-g:   rgba(52,211,153,.14);
+      --net:  #60a5fa; --net-g:  rgba(96,165,250,.14);
+      --sec:  #f472b6; --sec-g:  rgba(244,114,182,.14);
+      --cld:  #c084fc; --cld-g:  rgba(192,132,252,.14);
+      --r: 14px; --t: .25s cubic-bezier(.4,0,.2,1);
+    }
+
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Sora', sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+
+    #ambient { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+    .orb { position: absolute; border-radius: 50%; filter: blur(90px); opacity: .16; animation: drift 20s ease-in-out infinite alternate; }
+    .o1 { width:750px; height:750px; background:radial-gradient(circle,#1a56d6,transparent 70%); top:-20%; left:-12%; animation-duration:24s; }
+    .o2 { width:550px; height:550px; background:radial-gradient(circle,#0e7490,transparent 70%); top:35%; right:-10%; animation-duration:18s; animation-delay:-6s; }
+    .o3 { width:450px; height:450px; background:radial-gradient(circle,#5b21b6,transparent 70%); bottom:5%; left:18%; animation-duration:22s; animation-delay:-12s; }
+    @keyframes drift { 0%{transform:translate(0,0) scale(1)} 50%{transform:translate(25px,-35px) scale(1.04)} 100%{transform:translate(-18px,28px) scale(.97)} }
+    body::before { content:''; position:fixed; inset:0; z-index:1; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); background-size:180px; opacity:.022; pointer-events:none; }
+    #net-canvas { position:fixed; inset:0; z-index:1; opacity:.35; pointer-events:none; }
+
+    nav { position:fixed; top:0; left:0; right:0; z-index:200; height:62px; background:rgba(5,12,26,.75); border-bottom:1px solid var(--gb); backdrop-filter:blur(22px) saturate(1.6); display:flex; align-items:center; padding:0 2.5rem; gap:1.5rem; }
+    .nav-logo { font-family:'Playfair Display',serif; font-size:1.1rem; color:var(--text); text-decoration:none; margin-right:auto; display:flex; align-items:center; gap:.55rem; }
+    .npulse { width:8px; height:8px; border-radius:50%; background:var(--cyan); animation:cpulse 2.5s ease-in-out infinite; }
+    @keyframes cpulse { 0%,100%{box-shadow:0 0 0 0 rgba(34,211,238,.35)} 55%{box-shadow:0 0 0 7px transparent} }
+    .nav-links { display:flex; list-style:none; gap:.15rem; }
+    .nav-links a { font-size:.78rem; font-weight:500; color:var(--muted); text-decoration:none; padding:.35rem .7rem; border-radius:7px; transition:color var(--t),background var(--t); }
+    .nav-links a:hover { color:var(--text); background:var(--glass); }
+    .nav-links a.active { color:var(--cyan); background:rgba(34,211,238,.08); box-shadow:inset 0 -2px 0 var(--cyan); }
+
+    .wrap { position:relative; z-index:2; max-width:1100px; margin:0 auto; padding:0 2rem; }
+    .sec  { padding:5.5rem 0 3rem; }
+    .eyebrow { font-family:'JetBrains Mono',monospace; font-size:.7rem; font-weight:500; letter-spacing:.13em; text-transform:uppercase; color:var(--cyan); margin-bottom:.65rem; display:flex; align-items:center; gap:.6rem; }
+    .eyebrow::before { content:''; width:24px; height:1px; background:var(--cyan); opacity:.5; }
+    .sec-h { font-family:'Playfair Display',serif; font-size:clamp(1.7rem,3vw,2.3rem); font-weight:600; letter-spacing:-.025em; margin-bottom:.5rem; }
+
+    .back-link { display:inline-flex; align-items:center; gap:.45rem; font-size:.8rem; font-weight:600; color:var(--muted); text-decoration:none; padding:.35rem .8rem; border-radius:8px; border:1px solid var(--gb); background:var(--glass); backdrop-filter:blur(12px); transition:color var(--t),background var(--t),border-color var(--t); margin-bottom:2rem; }
+    .back-link:hover { color:var(--text); background:var(--glass-h); border-color:var(--gb-h); }
+
+    .proj-header { border-radius:20px; padding:2.5rem; background:var(--glass); border:1px solid rgba(52,211,153,.2); backdrop-filter:blur(18px); box-shadow:0 16px 60px rgba(0,0,0,.4), inset 0 1px 0 var(--shine); position:relative; overflow:hidden; margin-bottom:2rem; }
+    .proj-header::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,var(--it),var(--cyan),var(--blue)); }
+    .ph-top { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-bottom:1.2rem; }
+    .ph-ico { width:52px; height:52px; border-radius:14px; background:var(--it-g); border:1px solid rgba(52,211,153,.25); display:flex; align-items:center; justify-content:center; font-size:1.5rem; flex-shrink:0; }
+    .ph-title { font-family:'Playfair Display',serif; font-size:clamp(1.4rem,3vw,2rem); font-weight:600; letter-spacing:-.02em; margin-bottom:.3rem; }
+    .ph-sub { font-size:.85rem; color:var(--muted); }
+    .pstat { font-family:'JetBrains Mono',monospace; font-size:.64rem; font-weight:500; padding:.2rem .62rem; border-radius:100px; }
+    .sd { background:rgba(52,211,153,.12); color:var(--it); border:1px solid rgba(52,211,153,.2); }
+    .ph-desc { font-size:.9rem; color:var(--muted); line-height:1.85; max-width:740px; }
+
+    .tag-strip { display:flex; flex-wrap:wrap; gap:.35rem; margin-top:1.2rem; }
+    .tag { font-size:.67rem; font-weight:600; padding:.19rem .56rem; border-radius:6px; }
+    .t-it   { background:rgba(52,211,153,.1);  color:var(--it);   border:1px solid rgba(52,211,153,.2); }
+    .t-tool { background:rgba(255,255,255,.05); color:var(--muted); border:1px solid var(--gb); }
+
+    .content-grid { display:grid; grid-template-columns:1fr 340px; gap:1.5rem; align-items:start; }
+
+    .block { border-radius:16px; padding:1.8rem; background:var(--glass); border:1px solid var(--gb); backdrop-filter:blur(18px); box-shadow:0 4px 20px rgba(0,0,0,.25), inset 0 1px 0 var(--shine); margin-bottom:1.5rem; }
+    .block-label { font-family:'JetBrains Mono',monospace; font-size:.65rem; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--cyan); margin-bottom:1rem; display:flex; align-items:center; gap:.5rem; }
+    .block-label::before { content:''; width:16px; height:1px; background:var(--cyan); opacity:.5; }
+    .bl-list { list-style:none; display:flex; flex-direction:column; gap:.55rem; }
+    .bl-list li { font-size:.85rem; color:var(--muted); line-height:1.7; padding-left:1.2rem; position:relative; }
+    .bl-list li::before { content:'▸'; position:absolute; left:0; color:var(--it); font-size:.72rem; top:.1rem; }
+
+    .env-table { width:100%; border-collapse:collapse; }
+    .env-table tr { border-bottom:1px solid var(--gb); }
+    .env-table tr:last-child { border-bottom:none; }
+    .env-table td { padding:.65rem 0; font-size:.82rem; }
+    .env-table td:first-child { color:var(--dim); font-family:'JetBrains Mono',monospace; font-size:.72rem; width:45%; }
+    .env-table td:last-child { color:var(--text); font-weight:500; text-align:right; }
+
+    .code-block { background:rgba(0,0,0,.4); border:1px solid var(--gb); border-radius:10px; padding:1rem 1.2rem; font-family:'JetBrains Mono',monospace; font-size:.75rem; color:var(--muted); line-height:1.7; overflow-x:auto; margin-top:.8rem; }
+    .code-block .kw  { color:var(--cyan); }
+    .code-block .cm  { color:var(--dim); font-style:italic; }
+    .code-block .str { color:var(--green); }
+
+    .step { display:flex; gap:1.2rem; padding:.9rem 0; border-bottom:1px solid var(--gb); }
+    .step:last-child { border-bottom:none; padding-bottom:0; }
+    .step-num { width:32px; height:32px; border-radius:50%; flex-shrink:0; background:var(--it-g); border:1px solid rgba(52,211,153,.3); display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; font-size:.72rem; font-weight:700; color:var(--it); margin-top:.1rem; }
+    .step-title { font-size:.88rem; font-weight:700; margin-bottom:.3rem; }
+    .step-desc { font-size:.81rem; color:var(--muted); line-height:1.7; }
+    .step-cmd { display:block; margin-top:.6rem; font-family:'JetBrains Mono',monospace; font-size:.73rem; color:var(--cyan); background:rgba(0,0,0,.3); border:1px solid var(--gb); border-radius:7px; padding:.45rem .8rem; white-space:pre-wrap; word-break:break-all; }
+    .step-note { display:flex; gap:.5rem; align-items:flex-start; margin-top:.6rem; padding:.5rem .8rem; border-radius:7px; background:rgba(251,191,36,.07); border:1px solid rgba(251,191,36,.18); font-size:.76rem; color:var(--muted); line-height:1.6; }
+    .step-note::before { content:'💡'; flex-shrink:0; }
+
+    .outcome-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+    .outcome-card { border-radius:12px; padding:1.1rem 1.2rem; background:rgba(52,211,153,.06); border:1px solid rgba(52,211,153,.15); }
+    .oc-icon { font-size:1.3rem; margin-bottom:.5rem; }
+    .oc-title { font-size:.82rem; font-weight:700; margin-bottom:.3rem; }
+    .oc-desc { font-size:.77rem; color:var(--muted); line-height:1.6; }
+
+    .snap-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:1rem; margin-top:.5rem; }
+    .snap-placeholder { aspect-ratio:16/10; border-radius:10px; background:rgba(255,255,255,.03); border:1.5px dashed rgba(255,255,255,.12); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.5rem; color:var(--dim); font-size:.72rem; font-family:'JetBrains Mono',monospace; transition:border-color var(--t),background var(--t); }
+    .snap-placeholder:hover { border-color:rgba(34,211,238,.3); background:rgba(34,211,238,.04); color:var(--muted); }
+    .snap-placeholder .sp-icon { font-size:1.5rem; opacity:.4; }
+
+    .sidebar { display:flex; flex-direction:column; gap:1.5rem; }
+
+    footer { position:relative; z-index:2; text-align:center; padding:2rem; border-top:1px solid var(--gb); color:var(--dim); font-size:.78rem; display:flex; justify-content:center; align-items:center; gap:.75rem; }
+    footer a { color:var(--muted); text-decoration:none; transition:color var(--t); }
+    footer a:hover { color:var(--text); }
+
+    #scroll-bar { position:fixed; top:0; left:0; height:3px; width:0%; background:linear-gradient(90deg,var(--blue2),var(--cyan),var(--violet)); z-index:999; transition:width .05s linear; box-shadow:0 0 8px rgba(34,211,238,.5); }
+    #back-top { position:fixed; bottom:2rem; right:2rem; z-index:300; width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg,var(--blue2),#1d4ed8); border:1px solid rgba(96,165,250,.3); box-shadow:0 4px 20px rgba(37,99,235,.4); display:flex; align-items:center; justify-content:center; cursor:pointer; color:#fff; font-size:1.1rem; opacity:0; transform:translateY(12px); transition:opacity .3s ease,transform .3s ease; pointer-events:none; }
+    #back-top.visible { opacity:1; transform:translateY(0); pointer-events:auto; }
+    #back-top:hover { box-shadow:0 8px 28px rgba(37,99,235,.6); transform:translateY(-3px); }
+
+    .hamburger { display:none; flex-direction:column; justify-content:space-between; width:36px; height:36px; padding:8px; border-radius:8px; background:var(--glass); border:1px solid var(--gb); cursor:pointer; gap:5px; }
+    .hamburger span { display:block; width:100%; height:2px; background:var(--text); border-radius:2px; transition:transform .3s ease,opacity .3s ease; }
+    .hamburger.open span:nth-child(1) { transform:translateY(7px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity:0; }
+    .hamburger.open span:nth-child(3) { transform:translateY(-7px) rotate(-45deg); }
+    .mobile-menu { display:none; position:fixed; top:62px; left:0; right:0; background:rgba(5,12,26,.97); border-bottom:1px solid var(--gb); backdrop-filter:blur(24px); z-index:199; padding:1rem 1.5rem 1.5rem; flex-direction:column; gap:.3rem; opacity:0; transform:translateY(-10px); transition:opacity .25s ease,transform .25s ease; }
+    .mobile-menu.open { display:flex; opacity:1; transform:translateY(0); }
+    .mobile-menu a { font-size:.95rem; font-weight:500; color:var(--muted); text-decoration:none; padding:.75rem 1rem; border-radius:10px; transition:color var(--t),background var(--t); border:1px solid transparent; }
+    .mobile-menu a:hover,.mobile-menu a.active { color:var(--text); background:var(--glass); border-color:var(--gb); }
+    .mobile-menu a.active { color:var(--cyan); background:rgba(34,211,238,.08); border-color:rgba(34,211,238,.2); }
+
+    #theme-toggle { width:38px; height:38px; border-radius:50%; background:var(--glass); border:1px solid var(--gb); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:1rem; transition:background var(--t),border-color var(--t),transform var(--t); flex-shrink:0; backdrop-filter:blur(12px); }
+    #theme-toggle:hover { background:var(--glass-h); border-color:var(--gb-h); transform:rotate(20deg) scale(1.1); }
+
+    body.light {
+      --bg:#f0f4ff; --glass:rgba(0,0,0,0.045); --glass-h:rgba(0,0,0,0.08); --gb:rgba(0,0,0,0.1); --gb-h:rgba(0,0,0,0.18); --shine:rgba(255,255,255,0.6); --text:#0d1a36; --muted:rgba(30,50,100,0.62); --dim:rgba(30,60,120,0.35);
+      --blue:#1a56d6; --blue2:#2563eb; --cyan:#0891b2; --violet:#7c3aed; --green:#059669;
+      --it:#059669; --it-g:rgba(5,150,105,.12); --net:#1a56d6; --net-g:rgba(26,86,214,.12); --sec:#db2777; --sec-g:rgba(219,39,119,.12); --cld:#7c3aed; --cld-g:rgba(124,58,237,.12);
+    }
+    body.light #net-canvas { opacity:.15; }
+    body.light .orb { opacity:.08; }
+    body.light nav { background:rgba(240,244,255,.85); border-bottom-color:rgba(0,0,0,.1); }
+    body.light .block, body.light .proj-header, body.light .outcome-card { background:rgba(255,255,255,.7); border-color:rgba(0,0,0,.1); }
+    body.light .code-block, body.light .step-cmd { background:rgba(0,0,0,.06); }
+    body.light .snap-placeholder { background:rgba(0,0,0,.03); border-color:rgba(0,0,0,.12); }
+    body.light footer { background:rgba(240,244,255,.8); }
+    body.light .mobile-menu { background:rgba(240,244,255,.97); }
+    html.light-preload body { --bg:#f0f4ff; --text:#0d1a36; background:#f0f4ff; color:#0d1a36; }
+
+    @media(max-width:820px) {
+      .content-grid { grid-template-columns:1fr; }
+      nav .nav-links { display:none; }
+      .hamburger { display:flex; }
+      .wrap { padding:0 1.2rem; }
+      .outcome-grid { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+<script>
+  (function() {
+    try { if (localStorage.getItem('bl-theme') === 'light') document.documentElement.classList.add('light-preload'); } catch(e) {}
+  })();
+</script>
+<div id="scroll-bar"></div>
+<button id="back-top" aria-label="Back to top">↑</button>
+<div id="ambient"><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div></div>
+<canvas id="net-canvas"></canvas>
+
+<nav>
+  <a class="nav-logo" href="index.html"><span class="npulse"></span>Baltazar Laborte</a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="about.html">About</a></li>
+    <li><a href="education.html">Education</a></li>
+    <li><a href="projects.html" class="active">Projects</a></li>
+    <li><a href="skills.html">Skills</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+  <button id="theme-toggle" aria-label="Toggle theme" title="Toggle dark/light mode">🌙</button>
+  <button class="hamburger" id="hamburger" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+</nav>
+<div class="mobile-menu" id="mobile-menu"></div>
+
+<section class="sec">
+  <div class="wrap">
+
+    <a class="back-link rv" href="projects.html">← Back to Projects</a>
+
+    <div class="eyebrow rv">IT Support · Home Lab</div>
+    <h1 class="sec-h rv">Ticketing System (osTicket)</h1>
+
+    <!-- PAGE HEADER -->
+    <div class="proj-header rv">
+      <div class="ph-top">
+        <div style="display:flex;align-items:center;gap:1rem">
+          <div class="ph-ico">🎫</div>
+          <div>
+            <div class="ph-title">Ticketing System (osTicket)</div>
+            <div class="ph-sub">osTicket · LAMP Stack · Ubuntu · VirtualBox</div>
+          </div>
+        </div>
+        <span class="pstat sd">Completed</span>
+      </div>
+      <p class="ph-desc">Self-hosted osTicket on a Linux VM running a full LAMP stack inside VirtualBox. Configured SLAs, escalation rules, departments, and email piping to simulate a real enterprise helpdesk workflow end-to-end — mirroring how IT support teams manage incoming incidents, service requests, and change tickets in production environments.</p>
+      <div class="tag-strip">
+        <span class="tag t-it">IT Support</span>
+        <span class="tag t-tool">osTicket</span>
+        <span class="tag t-tool">LAMP Stack</span>
+        <span class="tag t-tool">Ubuntu</span>
+        <span class="tag t-tool">Apache</span>
+        <span class="tag t-tool">MySQL</span>
+        <span class="tag t-tool">PHP</span>
+        <span class="tag t-tool">VirtualBox</span>
+        <span class="tag t-tool">SLA Management</span>
+      </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="content-grid">
+
+      <!-- LEFT COLUMN -->
+      <div>
+
+        <!-- Objectives -->
+        <div class="block rv">
+          <div class="block-label">Objectives</div>
+          <ul class="bl-list">
+            <li>Deploy and configure a self-hosted ticketing system to simulate a real IT helpdesk environment</li>
+            <li>Understand the full lifecycle of an IT ticket — from submission and triage to resolution and closure</li>
+            <li>Practice configuring SLAs, priority levels, and escalation rules to mirror enterprise support workflows</li>
+            <li>Set up department routing so tickets are automatically assigned to the correct team (IT, Network, Security)</li>
+            <li>Configure email piping so incoming emails automatically generate tickets in the system</li>
+            <li>Learn Linux server administration skills: Apache, MySQL, PHP, and file permission management on Ubuntu</li>
+          </ul>
+        </div>
+
+        <!-- What Was Built -->
+        <div class="block rv">
+          <div class="block-label">What Was Built</div>
+          <ul class="bl-list">
+            <li>Deployed <strong>Ubuntu Server 22.04 LTS</strong> VM in VirtualBox with a Bridged Network adapter for LAN access</li>
+            <li>Installed and configured a full <strong>LAMP stack</strong> — Apache2, MySQL 8, PHP 8.1 — as the osTicket backend</li>
+            <li>Downloaded, installed, and configured <strong>osTicket v1.18</strong> including database creation and web installer setup</li>
+            <li>Created <strong>3 departments</strong>: IT Support, Networking, and Cybersecurity — each with dedicated agents and queues</li>
+            <li>Configured <strong>4 SLA tiers</strong>: Critical (1hr), High (4hr), Normal (8hr), Low (24hr) with auto-escalation on breach</li>
+            <li>Built <strong>help topics</strong> for Password Reset, Hardware Issue, Software Request, Network Outage, and Security Incident</li>
+            <li>Set up <strong>email piping</strong> via fetchmail so emails sent to helpdesk@blaborte.local auto-create tickets</li>
+            <li>Created <strong>agent accounts</strong> with role-based access: Admin, Manager, and Technician permission levels</li>
+            <li>Tested the full ticket lifecycle: open → assigned → in-progress → resolved → closed, with internal notes and canned responses</li>
+          </ul>
+
+          <div class="block-label" style="margin-top:1.4rem">Bash — LAMP Stack Install</div>
+          <div class="code-block">
+<span class="cm"># Update system and install LAMP stack</span>
+sudo apt update && sudo apt upgrade -y
+sudo apt install apache2 mysql-server php php-mysqli <span class="kw">\</span>
+  php-gd php-imap php-xml php-mbstring php-intl <span class="kw">\</span>
+  php-apcu libapache2-mod-php -y
+
+<span class="cm"># Secure MySQL and create osTicket database</span>
+sudo mysql_secure_installation
+sudo mysql -u root -p <span class="kw"><<</span><span class="str">EOF</span>
+CREATE DATABASE osticket;
+CREATE USER <span class="str">'osticket'</span>@<span class="str">'localhost'</span> IDENTIFIED BY <span class="str">'Lab@2024!'</span>;
+GRANT ALL PRIVILEGES ON osticket.* TO <span class="str">'osticket'</span>@<span class="str">'localhost'</span>;
+FLUSH PRIVILEGES;
+<span class="str">EOF</span>
+
+<span class="cm"># Enable Apache mod_rewrite for osTicket</span>
+sudo a2enmod rewrite
+sudo systemctl restart apache2</div>
+        </div>
+
+        <!-- Step-by-Step Guide -->
+        <div class="block rv">
+          <div class="block-label">Step-by-Step Setup Guide</div>
+
+          <div class="step">
+            <div class="step-num">01</div>
+            <div class="step-body">
+              <div class="step-title">Create the Ubuntu VM in VirtualBox</div>
+              <div class="step-desc">In VirtualBox, create a new VM — Type: Linux, Version: Ubuntu (64-bit). Assign at least 2 vCPUs and 2GB RAM (4GB recommended). For networking, use <strong>Bridged Adapter</strong> so the VM gets an IP on your local network and you can access the osTicket web portal from your host machine's browser.</div>
+              <div class="step-note">Download Ubuntu Server 22.04 LTS ISO from ubuntu.com. Attach it under VM Settings → Storage → add optical drive. During install, select "Install OpenSSH server" for easy remote access.</div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-num">02</div>
+            <div class="step-body">
+              <div class="step-title">Update the System &amp; Install LAMP Stack</div>
+              <div class="step-desc">After booting into Ubuntu Server, update all packages then install Apache, MySQL, and PHP with the extensions osTicket requires.</div>
+              <code class="step-cmd">sudo apt update && sudo apt upgrade -y
+sudo apt install apache2 mysql-server php php-mysqli php-gd php-imap php-xml php-mbstring php-intl php-apcu libapache2-mod-php -y
+sudo a2enmod rewrite
+sudo systemctl restart apache2</code>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-num">03</div>
+            <div class="step-body">
+              <div class="step-title">Secure MySQL &amp; Create the Database</div>
+              <div class="step-desc">Run the MySQL secure installation wizard, then log in and create a dedicated database and user for osTicket.</div>
+              <code class="step-cmd">sudo mysql_secure_installation
+
+sudo mysql -u root -p
+# Inside MySQL shell:
+CREATE DATABASE osticket;
+CREATE USER 'osticket'@'localhost' IDENTIFIED BY 'YourPassword!';
+GRANT ALL PRIVILEGES ON osticket.* TO 'osticket'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;</code>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-num">04</div>
+            <div class="step-body">
+              <div class="step-title">Download &amp; Install osTicket</div>
+              <div class="step-desc">Download the latest osTicket release, extract it to Apache's web root, and set the correct file permissions.</div>
+              <code class="step-cmd">cd /tmp
+wget https://github.com/osTicket/osTicket/releases/download/v1.18.1/osTicket-v1.18.1.zip
+sudo apt install unzip -y
+unzip osTicket-v1.18.1.zip -d osticket
+sudo cp -r osticket/upload /var/www/html/osticket
+sudo cp /var/www/html/osticket/include/ost-sampleconfig.php \
+        /var/www/html/osticket/include/ost-config.php
+sudo chmod 0666 /var/www/html/osticket/include/ost-config.php
+sudo chown -R www-data:www-data /var/www/html/osticket</code>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-num">05</div>
+            <div class="step-body">
+              <div class="step-title">Configure Apache Virtual Host</div>
+              <div class="step-desc">Create an Apache config file for osTicket so it serves correctly from the web root.</div>
+              <code class="step-cmd">sudo nano /etc/apache2/sites-available/osticket.conf</code>
+              <div class="step-note">Paste this into the file: ServerName your-server-ip, DocumentRoot /var/www/html/osticket, then run: sudo a2ensite osticket.conf && sudo systemctl reload apache2</div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-num">06</div>
+            <div class="step-body">
+              <div class="step-title">Run the Web Installer</div>
+              <div class="step-desc">Open your browser and navigate to your server's IP address. The osTicket setup wizard will guide you through connecting to the database and creating the admin account.</div>
+              <code class="step-cmd">http://&lt;your-server-ip&gt;/osticket/setup/</code>
+              <div class="step-note">After setup completes, delete the /setup directory and lock down ost-config.php: sudo rm -rf /var/www/html/osticket/setup && sudo chmod 0644 /var/www/html/osticket/include/ost-config.php</div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-num">07</div>
+            <div class="step-body">
+              <div class="step-title">Create Departments &amp; Help Topics</div>
+              <div class="step-desc">Log into the Admin Panel (yourip/osticket/scp). Go to <strong>Admin Panel → Agents → Departments</strong> and create IT Support, Networking, and Cybersecurity. Then go to <strong>Manage → Help Topics</strong> and add topics like Password Reset, Hardware Issue, and Network Outage.</div>
+              <div class="step-note">Help Topics determine which department a ticket routes to automatically. Set a default SLA and priority per topic for consistent triage.</div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-num">08</div>
+            <div class="step-body">
+              <div class="step-title">Configure SLA Plans</div>
+              <div class="step-desc">Go to <strong>Admin Panel → Manage → SLA Plans</strong>. Create your tiers with grace periods and schedules. SLAs define how quickly a ticket must be responded to and resolved before it auto-escalates.</div>
+              <code class="step-cmd">SEV-A (Critical): Grace Period 1hr  — 24/7
+SEV-B (High):     Grace Period 4hr  — 24/7
+SEV-C (Normal):   Grace Period 8hr  — Business Hours
+SEV-D (Low):      Grace Period 24hr — Business Hours</code>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-num">09</div>
+            <div class="step-body">
+              <div class="step-title">Create Agent Accounts &amp; Assign Roles</div>
+              <div class="step-desc">Go to <strong>Admin Panel → Agents → Add New Agent</strong>. Create agents for each department and assign roles (Admin, Manager, Technician). Roles control what agents can see, edit, assign, and close.</div>
+              <div class="step-note">Create at least one end-user account under the Client Portal to simulate submitting and tracking tickets from the user's perspective.</div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-num">10</div>
+            <div class="step-body">
+              <div class="step-title">Test the Full Ticket Lifecycle</div>
+              <div class="step-desc">Submit a test ticket via the client portal or by sending an email (if piping is configured). Then log in as an agent and walk through the full workflow: acknowledge → assign → update → add internal notes → resolve → close. Verify the SLA timer, escalation, and department routing all work correctly.</div>
+              <div class="step-note">Try deliberately breaching an SLA to confirm the escalation alert fires. Check Admin Panel → Dashboard for ticket stats and agent performance metrics.</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Key Learnings -->
+        <div class="block rv">
+          <div class="block-label">Key Learnings</div>
+          <ul class="bl-list">
+            <li>Gained hands-on experience deploying and managing a <strong>LAMP stack</strong> on Ubuntu — directly applicable to Linux sysadmin roles</li>
+            <li>Understood how enterprise ticketing systems work: ticket routing, SLA enforcement, escalation chains, and agent queues</li>
+            <li>Practiced Linux file permissions, Apache virtual host configuration, and MySQL database administration</li>
+            <li>Learned how email piping works — how an SMTP/IMAP integration turns inbound emails into tracked support tickets</li>
+            <li>Experienced the helpdesk workflow from both the <strong>end-user</strong> and <strong>agent perspectives</strong> — building empathy for both sides</li>
+            <li>Troubleshot common LAMP issues: 403 Forbidden errors, PHP extension mismatches, and MySQL connection failures</li>
+          </ul>
+        </div>
+
+        <!-- Outcomes -->
+        <div class="block rv">
+          <div class="block-label">Outcomes</div>
+          <div class="outcome-grid">
+            <div class="outcome-card">
+              <div class="oc-icon">🎫</div>
+              <div class="oc-title">Helpdesk Workflow Mastery</div>
+              <div class="oc-desc">Experienced the complete ticket lifecycle — submission, triage, assignment, escalation, resolution — matching real enterprise IT support processes.</div>
+            </div>
+            <div class="outcome-card">
+              <div class="oc-icon">🐧</div>
+              <div class="oc-title">Linux Server Admin</div>
+              <div class="oc-desc">Built practical Ubuntu server skills: package management, Apache config, MySQL admin, and file permissions — all hands-on in a live environment.</div>
+            </div>
+            <div class="outcome-card">
+              <div class="oc-icon">⏱️</div>
+              <div class="oc-title">SLA & Escalation Design</div>
+              <div class="oc-desc">Designed and tested 4 SLA tiers with auto-escalation, giving real insight into how IT teams prioritize and manage response time commitments.</div>
+            </div>
+            <div class="outcome-card">
+              <div class="oc-icon">🚀</div>
+              <div class="oc-title">Future Roadmap</div>
+              <div class="oc-desc">Plans to integrate osTicket with the Active Directory lab for SSO login, and connect it to Splunk to correlate support tickets with security events.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Snapshots -->
+        <div class="block rv">
+          <div class="block-label">Snapshots</div>
+          <div class="snap-grid">
+            <div class="snap-placeholder"><span class="sp-icon">🖼️</span>Coming soon</div>
+            <div class="snap-placeholder"><span class="sp-icon">🖼️</span>Coming soon</div>
+            <div class="snap-placeholder"><span class="sp-icon">🖼️</span>Coming soon</div>
+            <div class="snap-placeholder"><span class="sp-icon">🖼️</span>Coming soon</div>
+            <div class="snap-placeholder"><span class="sp-icon">🖼️</span>Coming soon</div>
+            <div class="snap-placeholder"><span class="sp-icon">🖼️</span>Coming soon</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- SIDEBAR -->
+      <div class="sidebar">
+
+        <!-- Lab Environment -->
+        <div class="block rv">
+          <div class="block-label">Lab Environment</div>
+          <table class="env-table">
+            <tr><td>Hypervisor</td><td>VirtualBox 7.x</td></tr>
+            <tr><td>Server OS</td><td>Ubuntu Server 22.04 LTS</td></tr>
+            <tr><td>Web Server</td><td>Apache 2.4</td></tr>
+            <tr><td>Database</td><td>MySQL 8.0</td></tr>
+            <tr><td>Language</td><td>PHP 8.1</td></tr>
+            <tr><td>App Version</td><td>osTicket v1.18</td></tr>
+            <tr><td>Network</td><td>Bridged Adapter</td></tr>
+            <tr><td>Departments</td><td>3 (IT, Net, Sec)</td></tr>
+            <tr><td>SLA Tiers</td><td>4 (SEV A–D)</td></tr>
+            <tr><td>Status</td><td>✅ Completed</td></tr>
+          </table>
+        </div>
+
+        <!-- SLA Tiers -->
+        <div class="block rv">
+          <div class="block-label">SLA Tiers Configured</div>
+          <table class="env-table">
+            <tr><td>SEV-A Critical</td><td>1 hr · 24/7</td></tr>
+            <tr><td>SEV-B High</td><td>4 hr · 24/7</td></tr>
+            <tr><td>SEV-C Normal</td><td>8 hr · Biz Hrs</td></tr>
+            <tr><td>SEV-D Low</td><td>24 hr · Biz Hrs</td></tr>
+          </table>
+        </div>
+
+        <!-- Help Topics -->
+        <div class="block rv">
+          <div class="block-label">Help Topics Created</div>
+          <ul class="bl-list">
+            <li>Password Reset / Account Lockout</li>
+            <li>Hardware Issue / Equipment Request</li>
+            <li>Software Installation / License</li>
+            <li>Network Outage / Connectivity</li>
+            <li>Security Incident / Phishing Report</li>
+            <li>New Employee Onboarding</li>
+          </ul>
+        </div>
+
+        <!-- Agent Roles -->
+        <div class="block rv">
+          <div class="block-label">Agent Roles Configured</div>
+          <table class="env-table">
+            <tr><td>Admin</td><td>Full system access</td></tr>
+            <tr><td>Manager</td><td>Assign, escalate, report</td></tr>
+            <tr><td>Technician</td><td>View, update, resolve</td></tr>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span>© 2026</span><span>·</span>
+  <a href="index.html">Baltazar Laborte</a>
+  <span>·</span><span>HomeLab Portfolio</span>
+</footer>
+
+<script>
+const canvas = document.getElementById('net-canvas');
+const ctx = canvas.getContext('2d');
+let W, H, pts = [];
+function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+resize();
+window.addEventListener('resize', () => { resize(); buildPts(); });
+function buildPts() { pts = []; const n = Math.floor((W * H) / 22000); for (let i = 0; i < n; i++) { pts.push({ x: Math.random()*W, y: Math.random()*H, vx: (Math.random()-.5)*.45, vy: (Math.random()-.5)*.45, r: Math.random()*2+1.2 }); } }
+buildPts();
+function draw() { ctx.clearRect(0,0,W,H); for (let p of pts) { p.x+=p.vx; p.y+=p.vy; if(p.x<0||p.x>W)p.vx*=-1; if(p.y<0||p.y>H)p.vy*=-1; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fillStyle='rgba(100,160,255,0.55)'; ctx.fill(); } for(let i=0;i<pts.length;i++){for(let j=i+1;j<pts.length;j++){const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,dist=Math.sqrt(dx*dx+dy*dy);if(dist<130){ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.strokeStyle=`rgba(77,158,245,${(1-dist/130)*.28})`;ctx.lineWidth=.8;ctx.stroke();}}} requestAnimationFrame(draw); }
+draw();
+
+const rvObs = new IntersectionObserver(entries => {
+  entries.forEach((e, i) => { if (e.isIntersecting) { setTimeout(() => { e.target.style.opacity='1'; e.target.style.transform='none'; }, (i%4)*75); rvObs.unobserve(e.target); } });
+}, { threshold: .1 });
+document.querySelectorAll('.rv').forEach(el => { el.style.opacity='0'; el.style.transform='translateY(24px)'; el.style.transition='opacity .6s ease,transform .6s ease'; rvObs.observe(el); });
+
+const scrollBar = document.getElementById('scroll-bar');
+const backTop = document.getElementById('back-top');
+window.addEventListener('scroll', () => {
+  const pct = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+  scrollBar.style.width = pct + '%';
+  backTop.classList.toggle('visible', window.scrollY > 400);
+}, { passive: true });
+backTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+(function() {
+  const btn = document.getElementById('hamburger');
+  const menu = document.getElementById('mobile-menu');
+  if (!btn || !menu) return;
+  document.querySelectorAll('.nav-links a').forEach(link => {
+    const a = document.createElement('a');
+    a.href = link.href; a.textContent = link.textContent;
+    if (link.classList.contains('active')) a.classList.add('active');
+    a.addEventListener('click', closeMenu);
+    menu.appendChild(a);
+  });
+  function openMenu() { btn.classList.add('open'); menu.classList.add('open'); document.body.style.overflow='hidden'; }
+  function closeMenu() { btn.classList.remove('open'); menu.classList.remove('open'); document.body.style.overflow=''; }
+  btn.addEventListener('click', () => btn.classList.contains('open') ? closeMenu() : openMenu());
+  document.addEventListener('click', e => { if (!btn.contains(e.target) && !menu.contains(e.target)) closeMenu(); });
+  window.addEventListener('resize', () => { if (window.innerWidth > 820) closeMenu(); });
+})();
+
+const themeBtn = document.getElementById('theme-toggle');
+function applyTheme(theme) {
+  document.documentElement.classList.remove('light-preload');
+  if (theme === 'light') { document.body.classList.add('light'); themeBtn.textContent='☀️'; themeBtn.title='Switch to dark mode'; }
+  else { document.body.classList.remove('light'); themeBtn.textContent='🌙'; themeBtn.title='Switch to light mode'; }
+}
+try { applyTheme(localStorage.getItem('bl-theme') || 'dark'); } catch(e) { applyTheme('dark'); }
+themeBtn.addEventListener('click', () => {
+  const next = document.body.classList.contains('light') ? 'dark' : 'light';
+  try { localStorage.setItem('bl-theme', next); } catch(e) {}
+  applyTheme(next);
+});
+</script>
+</body>
+</html>
